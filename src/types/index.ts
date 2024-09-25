@@ -36,12 +36,8 @@ export type FinanceiroScreenPorps = NativeStackScreenProps<
  'Financeiro'
 >;
 
-export type ResumoScreenPorps = NativeStackScreenProps<
- RootStackParamList,
- 'Resumo'
->;
-
-export type ClienteResponse = {
+// Cliente
+export type TCliente = {
     id_cliente : number,
     tipo_pessoa :  string,
     tipo_cadastro :  string,
@@ -77,8 +73,8 @@ export type ClienteResponse = {
     data_cad_cliente : string,
     data_mod_cliente : string,
     lixeira :  string 
-}
-
+};
+// Pedido via PDV
 export type PedidoResponse = {
     id_ped: number,
     id_pedido: number,
@@ -126,4 +122,176 @@ export type PedidoResponse = {
     pagamento_com_conta_integrada: number,
     link_pgto_gerado: number,
     lixeira:  string 
-}
+};
+// Produto
+export type TProduto = {
+    id_produto: number;
+    id_registro: number;
+    id_empresa: number;
+    id_categoria: number;
+    cod_produto: string;
+    marca_produto: string;
+    desc_produto: string;
+    atalho_produto: string;
+    fornecedor_produto: string;
+    fornecedor_produto_id: number;
+    produto_variado: number;
+    id_produto_parent: number;
+    minimo_produto: string;
+    maximo_produto: string;
+    estoque_produto: string;
+    unidade_produto: string;
+    valor_produto: string;
+    valor_custo_produto: string;
+    peso_produto: string;
+    peso_liq_produto: string;
+    icms_produto: string | null;
+    ipi_produto: string | null;
+    pis_produto: string | null;
+    cofins_produto: string | null;
+    unidade_tributavel: string | null;
+    cest_produto: string;
+    beneficio_fiscal: string | null;
+    ncm_produto: string;
+    origem_produto: number;
+    codigo_barra_produto: string;
+    codigo_barras_internos: string | null;
+    obs_produto: string;
+    tipo_produto: string;
+    tamanho_produto: string;
+    localizacao_produto: string;
+    kit_produto: string;
+    baixar_kit: number;
+    desmembrar_kit: number;
+    loja_visivel: number;
+    loja_video_url: string | null;
+    valor_tributos: string;
+    valor_tributosEst: string;
+    status_produto: string;
+    id_comissionamento: number | null;
+    data_cad_produto: string;
+    data_mod_produto: string;
+    data_mod_estoque: string | null;
+    lixeira: string;
+    endereco_fixo: string | null;
+    controla_lote: string | null;
+    controla_validade: string | null;
+    lista_preco: string | null;
+    subcategoria: any[];
+    grades: any[];
+    variacoes: any[];
+    imagens: any[];
+};
+// Produto inserido no pedido
+export type TProdutoPedido = {
+    id_ped_produto: number;
+    id_pedido: number;
+    id_produto: number;
+    desc_produto: string;
+    qtde_produto: string;
+    desconto_produto: string;
+    ipi_produto: string;
+    icms_produto: string;
+    valor_unit_produto: string;
+    valor_custo_produto: string;
+    valor_total_produto: string;
+    peso_produto: string;
+    peso_liq_produto: string
+};
+// Transportadora
+export type TTransportadora =
+	{
+		id_transportadora: number,
+		id_registro: number,
+		tipo_pessoa: string,
+		desc_transportadora: string,
+		fantasia_transportadora: string,
+		cnpj_transportadora: string,
+		ie_transportadora: string,
+		endereco_transportadora: string,
+		numero_transportadora: number,
+		cep_transportadora: string,
+		bairro_transportadora: string,
+		complemento_transportadora: string,
+		cidade_transportadora: string,
+		cidade_transportadora_cod: number,
+		estado_transportadora: string,
+		fone_transportadora: string,
+		email_transportadora: string,
+		rntc_transportadora: string | null,
+		observacoes_transportadora: string | null,
+		data_cad_transportadora: string,
+		data_mod_transportadora: string | null,
+		lixeira: string
+};
+// Status do pedido
+enum Status_pedido {
+        'Em Aberto',
+        'Em Andamento',
+        'Atendido',
+        'Cancelado'
+};
+// Lixeira
+enum Lixeira_pedido {
+        'sim',
+        'não'
+};
+
+// Parcelas do pedido
+export type TParcelas = {
+    id_pedido: number,
+    data_parcela: string,
+    valor_parcela: string,
+    forma_pagamento: string,
+    observacoes_parcela: string
+};
+
+// Pedido via CRM
+export type TPedido = {
+    id_ped: number;
+    id_pedido: number;
+    id_cliente: number;
+    nome_cliente: string;
+    id_local_retirada: number;
+    id_local_cobranca: number;
+    vendedor_pedido: string;
+    vendedor_pedido_id: number;
+    listapreco_produtos: number;
+    valor_total_produtos: string;
+    desconto_pedido: string;
+    desconto_pedido_porc: string;
+    peso_total_nota: string;
+    peso_total_nota_liq: string;
+    frete_pedido: string;
+    valor_total_nota: string;
+    valor_baseICMS: string;
+    valor_ICMS: string;
+    valor_baseST: string;
+    valor_ST: string;
+    valor_IPI: string;
+    condicao_pagamento_id: number;
+    condicao_pagamento: number;
+    frete_por_pedido: number;
+    transportadora_pedido: string;
+    id_transportadora: number;
+    data_pedido: string;
+    prazo_entrega: string;
+    referencia_pedido: string;
+    obs_pedido: string;
+    obs_interno_pedido: string;
+    status_pedido: string;
+    contas_pedido: number;
+    comissao_pedido: number;
+    estoque_pedido: number;
+    pdv_emitido: null | string;
+    ordemc_emitido: number;
+    data_cad_pedido: string;
+    data_mod_pedido: string;
+    id_aplicativo: null | number;
+    id_pedido_aplicativo: null | number;
+    id_almoxarifado: number;
+    pagamento_com_vhpay: number;
+    pagamento_com_conta_integrada: number;
+    link_pgto_gerado: number;
+    lixeira: string;
+};

@@ -3,31 +3,35 @@ import { View, Text, Image, StyleSheet, Dimensions, ActivityIndicator } from "re
 import { ClienteScreenProps } from '../types';
 import {Picker} from '@react-native-picker/picker';
 import { Button } from 'react-native-paper';
-import { ClienteResponse } from '../types';
+import { TCliente } from '../types';
 
 var {width} = Dimensions.get('window');
 
 export default function Cliente({route, navigation}:ClienteScreenProps) {
   const [selectedLanguage, setSelectedLanguage] = useState();
   const [isLoading, setLoading] = useState(true);
-  const [data, setData] = useState<ClienteResponse[]>([]);
+  const [data, setData] = useState<TCliente[]>([]);
+
+  // Access-Control-Allow-Origin: https://efrata-app.netlify.app
 
   const getClientes = async () => {
+    const headers = {
+      'access-token': 'YGZSXYRIZVgQbCcXZGUZPDNRXWUHTE',
+      'secret-access-token': 'EZp0ESVrg4rmZ0eWtPcdvNKNRTtSEC',
+      'cache-control': 'no-cache',
+      'content-type': 'application/json',
+    };
     try {
-      const response = await fetch('https://api.vhsys.com/v2/clientes', {
+      const response = await fetch('/api/clientes', {
         method: 'GET',
-        headers: {
-          'access-token': 'YGZSXYRIZVgQbCcXZGUZPDNRXWUHTE',
-          'secret-access-token': 'EZp0ESVrg4rmZ0eWtPcdvNKNRTtSEC',
-          'cache-control': 'no-cache',
-          'content-type': 'application/json',
-        },
+        headers,
       });
-      console.log('response', response);
+  
       const json = await response.json();
       setData(json.data);
+      console.error('json.data:', json.data);
     } catch (error) {
-      console.error(error);
+      console.error('Erro:', error);
     } finally {
       setLoading(false);
     }
@@ -44,28 +48,27 @@ export default function Cliente({route, navigation}:ClienteScreenProps) {
       
     return (
       <View style={styles.container}>
+      {isLoading ? (
+        <ActivityIndicator />
+      ) : (
+        <>
         <Image
           resizeMode='contain'
           style={styles.tinyLogo}
-          source={require('../../assets/logo-efrata.png')}
+          source={require('../../assets/logo-no-background.png')}
         />
-        <Text style={styles.text} >Selecione ou cadastre um cliente</Text>      
+        <Text style={styles.text}>Selecione ou cadastre um cliente</Text>
         <Picker
           style={styles.selectPicker}
           selectedValue={selectedLanguage}
-          onValueChange={(itemValue, itemIndex) =>
-          setSelectedLanguage(itemValue)
-        }>
+          onValueChange={(itemValue, itemIndex) => setSelectedLanguage(itemValue)}>
           <Picker.Item label="Fulano da Silva" value="Fulano da Silva" />
           <Picker.Item label="Beltrano Junior" value="Beltrano Junior" />
         </Picker>
-        <Button style={styles.button} buttonColor="#1F88D9" mode="contained" onPress={handleSignIn}>
-          Avançar
-        </Button>
-        <Button style={styles.button} textColor="white" mode="text" onPress={() => console.log('Pressed')}>
-          Cadastrar
-        </Button>
-    </View>
+        <Button style={styles.button} buttonColor="#1F88D9" mode="contained" onPress={handleSignIn}>Avançar</Button>
+        <Button style={styles.button} textColor="white" mode="text" onPress={() => console.log('Pressed')}>Cadastrar</Button>
+        </>)}
+      </View>
     );
   };
 

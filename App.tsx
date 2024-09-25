@@ -9,8 +9,8 @@ import Tabs from './src/painel'
 export default function App() {
   const Stack = createNativeStackNavigator();
   return (
-    <NavigationContainer>
-      <Stack.Navigator>
+    <NavigationContainer >
+      <Stack.Navigator initialRouteName='Painel'>
         <Stack.Screen name="Login" component={Login} options={{title: 'Login'}}/>
         <Stack.Screen name="Cliente" component={Cliente} />
          <Stack.Screen name="Painel" component={Tabs} />
@@ -19,12 +19,3 @@ export default function App() {
     </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

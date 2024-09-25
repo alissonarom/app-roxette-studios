@@ -1,0 +1,6 @@
+[[redirects]]
+  from = "/api/clientes"
+  to = "https://api.vhsys.com/v2/clientes"
+  status = 200
+  force = true
+  headers = {X-From = "Netlify"}

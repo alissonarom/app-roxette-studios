@@ -30,45 +30,61 @@ export const styles = StyleSheet.create({
     fontWeight: "600"
   },
   footer: {
-    padding: 10,
-    backgroundColor: "white",
+    paddingTop: 20,
+    paddingBottom: 10,
+    paddingHorizontal: 20,
+    backgroundColor: "#145B91",
     borderTopRightRadius: 10,
-    borderTopLeftRadius: 10
+    borderTopLeftRadius: 10,
+    borderTopWidth:2,
+    borderTopColor: "#145B91"
+    
   },
   subFooter: {
     display: "flex",
     flexDirection: "row",
-    color: "#626060",
     fontSize: 18,
     fontFamily: "Roboto",
-    justifyContent: "space-between"
+    justifyContent: "space-between",
   },
+  textFooter: {
+    fontWeight: '600',
+    color: 'white'
+  },
+
   cardPanel:{
     backgroundColor: "white",
     marginBottom: 10,
+    padding: 10
   },
   cardPanelContent: {
     display: "flex",
     flexDirection: "row",
-    justifyContent: "space-between",
+    flexWrap: "nowrap",
   },
   title: {
     color: "#145B91"
   },
   cardResumo: {
     backgroundColor: 'white',
+    
     minWidth: '50%'
   },
   cardInputs: {
-    width: '40%'
+    backgroundColor: 'white',
+    marginHorizontal: 5,
+    flexShrink: 1,
+    fontSize: 16,
+    fontFamily: "Roboto",
   },
   selectPicker: {
+    flexGrow: 1,
     backgroundColor: 'white',
-    borderBottomColor: '#145B91',
-    borderTopColor: 'white',
-    borderLeftColor: 'white',
-    borderRightColor: 'white',
-    height: 30,
+    borderColor: '#145B91',
+    height: 'auto',
+    marginHorizontal: 5,
+    marginTop: 6,
+    borderRadius: 4,
   },
   daysCount: {
     color: 'red',
@@ -107,4 +123,9 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between'
   },
+
+  tableTitlePagamento: {
+    justifyContent: 'center',
+  }
+
   })

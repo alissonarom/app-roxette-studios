@@ -8,8 +8,8 @@ const Tab = createMaterialTopTabNavigator<RootStackParamList>();
 export default function Tabs() {
   return (
     <Tab.Navigator>
-      <Tab.Screen name="Pedido" component={NovoPedido} />
       <Tab.Screen name="Financeiro" component={Financeiro} />
+      <Tab.Screen name="Pedido" component={NovoPedido} />
     </Tab.Navigator>
   );
 }

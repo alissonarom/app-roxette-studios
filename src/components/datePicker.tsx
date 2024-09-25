@@ -2,11 +2,14 @@ import React from "react";
 import { View } from "react-native";
 import { DatePickerModal } from 'react-native-paper-dates';
 import { SafeAreaProvider } from "react-native-safe-area-context";
-// import { TextInput } from "react-native";
 import { TextInput } from "react-native-paper";
 
-export default function datePicker() {
-  const [date, setDate] = React.useState(new Date());
+interface DatePickerProps {
+  date: Date;
+  setDate: React.Dispatch<React.SetStateAction<Date>>;
+}
+
+export default function DatePicker({ date, setDate }: DatePickerProps) {
   const [open, setOpen] = React.useState(false);
 
   const onDismissSingle = React.useCallback(() => {
@@ -25,13 +28,16 @@ export default function datePicker() {
     <SafeAreaProvider>
       <View>
         <TextInput
-            style={{height: 30, borderBottomColor: '#145B91', backgroundColor: 'white' }}
-            placeholder={`${date}`}
+            outlineColor='#145B91'
+            activeOutlineColor='#145B91'
+            mode="outlined"
+            style={{marginTop: 6, backgroundColor: 'white', fontSize: 14, fontFamily: 'Roboto', height: 50}}
             onFocus={() => setOpen(true)}
+            value={`${date}`}
         />
         <DatePickerModal
           disableStatusBarPadding
-          locale="en"
+          locale="pt-BR"
           mode="single"
           visible={open}
           onDismiss={onDismissSingle}

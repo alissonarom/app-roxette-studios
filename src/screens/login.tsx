@@ -17,7 +17,7 @@ export default function Login({navigation}:LoginScreenProps){
           <Image
           resizeMode='contain'
           style={styles.tinyLogo}
-          source={require('../../assets/logo-efrata.png')}
+          source={require('../../assets/logo-no-background.png')}
         />
       <TextInput
         style={styles.input}
