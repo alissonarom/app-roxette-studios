@@ -15,6 +15,7 @@ export default function Cliente({route, navigation}:ClienteScreenProps) {
   // Access-Control-Allow-Origin: https://efrata-app.netlify.app
 
   const getClientes = async () => {
+    console.log('json.data:');
     const headers = {
       'access-token': 'YGZSXYRIZVgQbCcXZGUZPDNRXWUHTE',
       'secret-access-token': 'EZp0ESVrg4rmZ0eWtPcdvNKNRTtSEC',
@@ -29,7 +30,7 @@ export default function Cliente({route, navigation}:ClienteScreenProps) {
   
       const json = await response.json();
       setData(json.data);
-      console.error('json.data:', json.data);
+      console.log('json.data:', json.data);
     } catch (error) {
       console.error('Erro:', error);
     } finally {
@@ -37,9 +38,9 @@ export default function Cliente({route, navigation}:ClienteScreenProps) {
     }
   };
 
-
   function handleSignIn() {
     return navigation.navigate("Painel")
+    // return getClientes()
   }
 
   useEffect(() => {
@@ -61,9 +62,12 @@ export default function Cliente({route, navigation}:ClienteScreenProps) {
         <Picker
           style={styles.selectPicker}
           selectedValue={selectedLanguage}
-          onValueChange={(itemValue, itemIndex) => setSelectedLanguage(itemValue)}>
-          <Picker.Item label="Fulano da Silva" value="Fulano da Silva" />
-          <Picker.Item label="Beltrano Junior" value="Beltrano Junior" />
+          onValueChange={(itemValue, itemIndex) => setSelectedLanguage(itemValue)}
+          >
+            <Picker.Item label='Selecione um cliente' value='Selecione um cliente' />
+          {data.map((item) => {
+            return <Picker.Item label={item.razao_cliente} value={item.razao_cliente} key={item.id_cliente} />
+          })}
         </Picker>
         <Button style={styles.button} buttonColor="#1F88D9" mode="contained" onPress={handleSignIn}>Avançar</Button>
         <Button style={styles.button} textColor="white" mode="text" onPress={() => console.log('Pressed')}>Cadastrar</Button>

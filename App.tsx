@@ -10,9 +10,9 @@ export default function App() {
   const Stack = createNativeStackNavigator();
   return (
     <NavigationContainer >
-      <Stack.Navigator initialRouteName='Painel'>
-        <Stack.Screen name="Login" component={Login} options={{title: 'Login'}}/>
-        <Stack.Screen name="Cliente" component={Cliente} />
+      <Stack.Navigator initialRouteName='Login'>
+        <Stack.Screen name="Login" component={Login} options={{headerShown: false}}/>
+        <Stack.Screen name="Cliente" component={Cliente} options={{headerShown: false}}/>
          <Stack.Screen name="Painel" component={Tabs} />
         {/* <Stack.Screen name="CadastroCliente" component={CadastroCliente} /> */}
       </Stack.Navigator>
