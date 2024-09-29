@@ -5,6 +5,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     paddingTop: StatusBar.currentHeight,
     backgroundColor: 'E0E1E5',
+    justifyContent: 'space-between'
   },
   scrollView: {
     padding: 10

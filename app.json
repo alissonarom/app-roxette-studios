@@ -2,9 +2,9 @@
   "expo": {
     "name": "new-erp-efrata",
     "slug": "new-erp-efrata",
-    "version": "1.0.0",
+    "version": "1.5.0",
     "orientation": "portrait",
-    "icon": "./assets/Logomarca-Efrata.png",
+    "icon": "./assets/favicon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -21,7 +21,7 @@
       }
     },
     "web": {
-      "favicon": "./assets/Logomarca-Efrata.png",
+      "favicon": "./assets/favicon.png",
       "output": "single"
     }
   }

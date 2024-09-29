@@ -1,14 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { View, Text, ScrollView } from "react-native";
-import { FinanceiroScreenPorps } from "../../types";
-import { Card, DataTable, Divider, List } from 'react-native-paper';
+import { FinanceiroScreenPorps, RootStackParamList, TPedido } from "../../types";
+import { ActivityIndicator, Card, DataTable, Divider, List } from 'react-native-paper';
 import { styles } from "../styles";
 import { SafeAreaView } from "react-native";
-import { dataPedido } from "../../Mocks/produtoMock";
+// import { dataPedido } from "../../Mocks/produtoMock";
+import { useRoute, RouteProp } from "@react-navigation/native";
 
 const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
-    const [parcelas, setParcelas] = useState("");
-    const [expanded, setExpanded] = useState(true);
+    const route = useRoute<RouteProp<RootStackParamList, 'Pedido'>>();
+    const { cliente, vendedor } = route.params;
+	const [pedidos, setDataPedidos] = useState<TPedido[]>([]);
+	const [isLoading, setLoading] = useState(false);
 
 	{/* TODO fazer loop de parcelas e forma de pagamento */}
 
@@ -65,11 +68,56 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
         'Cancelado': {icon:'close-circle-outline', color:'red'},
         'Atendido': {icon:'check-circle-outline', color:'green'},
     }
+
+	const getPedidos = async () => {
+		setLoading(true);
+        const headers = {
+          'access-token': 'YGZSXYRIZVgQbCcXZGUZPDNRXWUHTE',
+          'secret-access-token': 'EZp0ESVrg4rmZ0eWtPcdvNKNRTtSEC',
+          'cache-control': 'no-cache',
+          'content-type': 'application/json',
+        };
+        try {
+          const response = await fetch('/api/pedidos', {
+            method: 'GET',
+            headers,
+          });
+      
+          const json = await response.json();
+
+		  const pedidosFiltrados = json.data.filter((pedido: any) => 
+			pedido.vendedor_pedido_id === vendedor.id_vendedor && pedido.id_cliente === cliente.id_cliente
+		  );
+		  setDataPedidos(pedidosFiltrados); // Atualiza o estado com os pedidos filtrados
+        } catch (error) {
+          console.error('Erro:', error);
+        } finally {
+          setLoading(false);
+        }
+    };
+
+	useEffect(() => {
+        getPedidos();
+    }, []);
     
     return (
         <SafeAreaView style={styles.container}>
-            <ScrollView style={styles.scrollView}>
+			<View style={{ backgroundColor: "#145B91", display: "flex", flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 5 }}>
                 <View>
+                    <Text style={{ fontWeight: '600', color: 'white' }}>Cliente</Text>
+                    <Text numberOfLines={1} ellipsizeMode="tail" style={{ color: 'white', maxWidth: 150 }}>{cliente.razao_cliente}</Text>
+                </View>
+                <View>
+                    <Text style={{ fontWeight: '600', color: 'white' }}>Vendedor</Text>
+                    <Text numberOfLines={1} ellipsizeMode="tail" style={{ color: 'white', maxWidth: 150 }}>{vendedor.razao_vendedor}</Text>
+                </View>
+            </View>
+			{isLoading ?
+			<View style={{height:'50%'}}>
+				<ActivityIndicator size={'large'} color="#145B91"/>
+			</View>
+			:(<ScrollView style={styles.scrollView}>
+                {/* <View>
                     <View style={{display: "flex", justifyContent: "space-between", flexDirection: "row"}}>
                         <Card style={{backgroundColor: 'white', justifyContent: 'center'}}>
                             <Card.Content style={{alignItems: 'center'}}>
@@ -108,10 +156,9 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
 							</View>
 						</View>
                     </View>
-                    
-                </View>
+                </View> */}
                 <List.Section title="Pedidos do mês">
-                    {dataPedido.slice().map((item, index) => (
+                    {pedidos.slice().map((item, index) => (
                     <>
                         <List.Accordion
                             key={index}
@@ -221,7 +268,7 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                     ))}
                 </List.Section>
                 
-            </ScrollView>
+            </ScrollView>) }
         </SafeAreaView>
     );
   };

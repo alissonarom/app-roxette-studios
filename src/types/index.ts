@@ -1,20 +1,20 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 
 export type RootStackParamList = {
-    Login: any;
-    Cliente: any;
+    // Login: any;
+    Cliente: { vendedor: TVendedorResponse };
     CadastroCliente: undefined;
-    Pedido: undefined;
-    Financeiro: undefined;
-    Resumo: undefined;
-    Painel: undefined;
+    Pedido: { cliente: TClienteResponse, vendedor: TVendedorResponse };
+    Financeiro: { cliente: TClienteResponse, vendedor: TVendedorResponse };
+    Painel: { cliente: TClienteResponse, vendedor: TVendedorResponse };
+    Vendedor: any
 
 };
 
-export type LoginScreenProps = NativeStackScreenProps<
- RootStackParamList,
- 'Login'
->;
+// export type LoginScreenProps = NativeStackScreenProps<
+//  RootStackParamList,
+//  'Login'
+// >;
 
 export type ClienteScreenProps = NativeStackScreenProps<
  RootStackParamList,
@@ -36,44 +36,150 @@ export type FinanceiroScreenPorps = NativeStackScreenProps<
  'Financeiro'
 >;
 
-// Cliente
-export type TCliente = {
-    id_cliente : number,
-    tipo_pessoa :  string,
-    tipo_cadastro :  string,
-    cnpj_cliente : string,
-    razao_cliente :  string,
-    fantasia_cliente :  string,
-    endereco_cliente :  string,
-    numero_cliente : number,
-    bairro_cliente : string,
-    complemento_cliente : string,
-    cep_cliente : string,
-    cidade_cliente : string,
-    cidade_cliente_cod : number,
-    uf_cliente : string,
-    contato_cliente : string,
-    fone_cliente : string,
-    fone_contato_cliente : string,
-    fone_ramal_cliente : string,
-    fax_cliente : string,
-    celular_cliente : string,
-    email_cliente : string,
-    email_contato_cliente : string,
-    website_cliente : string,
-    insc_estadual_cliente : string,
-    insc_municipal_cliente : string,
-    insc_produtor_cliente : string,
-    insc_suframa_cliente : string,
-    situacao_cliente :  string,
-    vendedor_cliente :  string,
-    vendedor_cliente_id : number,
-    observacoes_cliente :  string,
-    data_nasc_cliente : string,
-    data_cad_cliente : string,
-    data_mod_cliente : string,
-    lixeira :  string 
+export type VendedorScreenPorps = NativeStackScreenProps<
+ RootStackParamList,
+ 'Vendedor'
+>;
+
+// Cliente Resposta
+export type TClienteResponse = {
+  id_cliente: number; //
+  id_registro: number; //
+  tipo_pessoa: string; //
+  tipo_cadastro: string; //
+  cnpj_cliente: string;//
+  rg_cliente: string | null;//
+  data_emissao_rg_cliente: string | null;//
+  orgao_expedidor_rg_cliente: string | null;//
+  passaporte_cliente: string | null;//
+  estrangeiro_cliente: string | null | number;//
+  razao_cliente: string;//
+  fantasia_cliente: string;//
+  endereco_cliente: string;//
+  numero_cliente: string;//
+  bairro_cliente: string;//
+  complemento_cliente: string;//
+  referencia_cliente: string | null;//
+  cep_cliente: string;//
+  cidade_cliente: string;//
+  cidade_cliente_cod: number;//
+  uf_cliente: string;//
+  tel_destinatario_cliente: string | null;//
+  doc_destinatario_cliente: string | null;//
+  nome_destinatario_cliente: string | null;//
+  contato_cliente: string | null;//
+  fone_cliente: string;//
+  fone_contato_cliente: string | null;//
+  fone_ramal_cliente: string | null;//
+  fax_cliente: string | null;//
+  celular_cliente: string;//
+  email_cliente: string;//
+  email_contato_cliente: string | null;
+  celular_contato_cliente: string | null;
+  estado_civil_cliente: string | null;
+  website_cliente: string | null;
+  aposentado_cliente: string | null | number;
+  empregador_cliente: string | null;
+  profissao_cliente: string | null;
+  genero_cliente: string | null;
+  insc_estadual_cliente: string;
+  insc_municipal_cliente: string | null;
+  insc_produtor_cliente: string | null;
+  insc_suframa_cliente: string | null;
+  nif: string | null;
+  situacao_cliente: string; // e.g. "Ativo"
+  vendedor_cliente: string | null;
+  vendedor_cliente_id: string | null | number;
+  modalidade_frete: number;
+  id_transportadora: string | null;
+  desc_transportadora: string | null;
+  observacoes_cliente: string | null;
+  listapreco_cliente: number;
+  condicaopag_cliente: number;
+  limite_credito: string; // Assuming it's a string representation of a number
+  ultrapassar_limite_credito: number; // e.g. 0 or 1
+  consumidor_final: string; // e.g. "1"
+  contribuinte_icms: number; // e.g. 0 or 1
+  atividade_encerrada_cliente: string | null | number;
+  data_nasc_cliente: string; // Format: "YYYY-MM-DD"
+  data_cad_cliente: string; // Format: "YYYY-MM-DD HH:mm:ss"
+  data_mod_cliente: string | null; // Format: "YYYY-MM-DD HH:mm:ss"
+  lixeira: string; // e.g. "Sim"
 };
+
+// Cliente Resposta
+export type TClienteRegister = {
+  id_cliente: number;
+  tipo_pessoa: string;
+  tipo_cadastro: string;
+  cnpj_cliente: string;
+  razao_cliente: string;
+  fantasia_cliente: string;
+  endereco_cliente: string;
+  numero_cliente: number;
+  bairro_cliente: string;
+  complemento_cliente: string;
+  cep_cliente: string;
+  cidade_cliente: string;
+  cidade_cliente_cod: number;
+  uf_cliente: string;
+  contato_cliente: string;
+  fone_cliente: string;
+  fone_contato_cliente: string;
+  fone_ramal_cliente: string;
+  fax_cliente: string;
+  celular_cliente: string;
+  email_cliente: string;
+  email_contato_cliente: string;
+  website_cliente: string;
+  insc_estadual_cliente: number;
+  insc_municipal_cliente: number;
+  insc_produtor_cliente: number;
+  insc_suframa_cliente: number;
+  situacao_cliente: string;
+  vendedor_cliente: string;
+  vendedor_cliente_id: number;
+  observacoes_cliente: string;
+  data_nasc_cliente: string;
+  data_cad_cliente: string;
+  data_mod_cliente: string;
+  lixeira: string;
+};
+
+export type TVendedorResponse = {
+    id_vendedor: number;
+    id_registro: number;
+    tipo_pessoa: string;
+    cnpj_vendedor: string;
+    razao_vendedor: string;
+    fantasia_vendedor: string;
+    endereco_vendedor: string;
+    numero_vendedor: string;
+    bairro_vendedor: string;
+    complemento_vendedor: string;
+    cep_vendedor: string;
+    cidade_vendedor: string;
+    uf_vendedor: string;
+    contato_vendedor: string;
+    fone_vendedor: string;
+    fone_ramal_vendedor: string;
+    celular_vendedor: string;
+    email_vendedor: string;
+    website_vendedor: string;
+    banco_vendedor: string;
+    banco_agencia: string;
+    banco_conta: string;
+    banco_salario: string;
+    situacao_vendedor: string;
+    comissao_usuario: string;
+    comissao_regra: number;
+    usuario_vendedor: number;
+    observacoes_vendedor: string;
+    data_cad_vendedor: string; // formato "0000-00-00 00:00:00"
+    data_mod_vendedor: string; // formato "0000-00-00 00:00:00"
+    lixeira: string;
+}
+
 // Pedido via PDV
 export type PedidoResponse = {
     id_ped: number,
@@ -123,6 +229,7 @@ export type PedidoResponse = {
     link_pgto_gerado: number,
     lixeira:  string 
 };
+
 // Produto
 export type TProduto = {
     id_produto: number;
@@ -130,11 +237,11 @@ export type TProduto = {
     id_empresa: number;
     id_categoria: number;
     cod_produto: string;
-    marca_produto: string;
+    marca_produto: string | number | null;
     desc_produto: string;
-    atalho_produto: string;
+    atalho_produto: string | null;
     fornecedor_produto: string;
-    fornecedor_produto_id: number;
+    fornecedor_produto_id: number | null;
     produto_variado: number;
     id_produto_parent: number;
     minimo_produto: string;
@@ -143,34 +250,34 @@ export type TProduto = {
     unidade_produto: string;
     valor_produto: string;
     valor_custo_produto: string;
-    peso_produto: string;
-    peso_liq_produto: string;
+    peso_produto: string | number | null;
+    peso_liq_produto: string | number | null;
     icms_produto: string | null;
     ipi_produto: string | null;
     pis_produto: string | null;
     cofins_produto: string | null;
     unidade_tributavel: string | null;
-    cest_produto: string;
+    cest_produto: string | number | null;
     beneficio_fiscal: string | null;
-    ncm_produto: string;
+    ncm_produto: string | number | null;
     origem_produto: number;
-    codigo_barra_produto: string;
+    codigo_barra_produto: string | number | null;
     codigo_barras_internos: string | null;
-    obs_produto: string;
+    obs_produto: string | null;
     tipo_produto: string;
-    tamanho_produto: string;
-    localizacao_produto: string;
+    tamanho_produto: string | number | null;
+    localizacao_produto: string | number | null;
     kit_produto: string;
     baixar_kit: number;
     desmembrar_kit: number;
     loja_visivel: number;
     loja_video_url: string | null;
-    valor_tributos: string;
-    valor_tributosEst: string;
+    valor_tributos: string | number | null;
+    valor_tributosEst: string | number | null;
     status_produto: string;
     id_comissionamento: number | null;
     data_cad_produto: string;
-    data_mod_produto: string;
+    data_mod_produto: string | number | null;
     data_mod_estoque: string | null;
     lixeira: string;
     endereco_fixo: string | null;
@@ -182,6 +289,7 @@ export type TProduto = {
     variacoes: any[];
     imagens: any[];
 };
+
 // Produto inserido no pedido
 export type TProdutoPedido = {
     id_ped_produto: number;
@@ -189,15 +297,16 @@ export type TProdutoPedido = {
     id_produto: number;
     desc_produto: string;
     qtde_produto: string;
-    desconto_produto: string;
+    desconto_produto: string | number | null;
     ipi_produto: string;
     icms_produto: string;
     valor_unit_produto: string;
     valor_custo_produto: string;
     valor_total_produto: string;
-    peso_produto: string;
-    peso_liq_produto: string
+    peso_produto: string | number | null;
+    peso_liq_produto: string | number | null
 };
+
 // Transportadora
 export type TTransportadora =
 	{
@@ -224,18 +333,32 @@ export type TTransportadora =
 		data_mod_transportadora: string | null,
 		lixeira: string
 };
+
 // Status do pedido
-enum Status_pedido {
+export enum Status_pedido {
         'Em Aberto',
         'Em Andamento',
         'Atendido',
         'Cancelado'
 };
+
 // Lixeira
-enum Lixeira_pedido {
+export enum Lixeira_pedido {
         'sim',
         'não'
 };
+
+// Estoque lançado
+export enum Estoque_pedido {
+'Sim'=1,
+'Não'=0
+}
+
+// Conta lançada
+export enum Conta_lancada {
+    'Sim'=1,
+    'Não'=0
+    }
 
 // Parcelas do pedido
 export type TParcelas = {
@@ -245,6 +368,15 @@ export type TParcelas = {
     forma_pagamento: string,
     observacoes_parcela: string
 };
+
+// Parcela criar pedido
+export type TParcelaCriarPedido = {
+    data_parcela: string;           // Data da parcela no formato "YYYY-MM-DD"
+    valor_parcela: string;          // Valor da parcela como string no formato "00.00"
+    forma_pagamento: string;        // Forma de pagamento
+    observacoes_parcela: string;    // Observações sobre a parcela
+    conta_liquidada: number;        // Indicador se a conta está liquidada (0 ou 1)
+}
 
 // Pedido via CRM
 export type TPedido = {
@@ -295,3 +427,32 @@ export type TPedido = {
     link_pgto_gerado: number;
     lixeira: string;
 };
+
+//Criar pedido
+export type TNovoPedido = {
+    id_cliente: number | null; //ID do cliente 
+    nome_cliente: string; //Nome do cliente
+    vendedor_pedido: string; //Nome do vendedor
+    vendedor_pedido_id: number | null; //Nome do vendedor
+    desconto_pedido: string | number | null;//Valor total do desconto
+    peso_total_nota?: string | number | null;//Peso total do pedido
+    peso_total_nota_liq?: string | number | null;//Peso liquido do pedido
+    frete_pedido?: string | number | null;//Valor do frete
+    valor_baseICMS?: string | number | null;//Valor da base de ICMS
+    valor_ICMS?: string | number | null;//Valor do ICMS
+    valor_baseST?: string | number | null;//Valor da base de ST
+    valor_ST?: string | number | null;//Valor do ST
+    valor_IPI?: string | number | null;//Valor do ST
+    transportadora_pedido?: string | null;//Nome da transportadora
+    id_transportadora?: number | null;//ID da transportadora
+    data_pedido: string | null;//Data do pedido
+    prazo_entrega: string | null;//Prazo de entrega (Dias)
+    referencia_pedido: string | null;//Referência do pedido
+    obs_pedido: string | null;//Observações do pedido
+    obs_interno_pedido: string | null;//Observação interna do pedido
+    status_pedido: Status_pedido;//Status do pedido
+    estoque_pedido: Estoque_pedido;//Estoque lançado 1 = Sim, 0 = Não
+    contas_pedido: Conta_lancada;//Contas lançada 1 = Sim, 0 = Não
+};
+
+export const dataFrete = [{ nome:'Destinatário', valor:1}, {nome: 'Terceiro', valor:2}, {nome:'Sem frete', valor:9}, {nome:'Emitente', valor:0}]

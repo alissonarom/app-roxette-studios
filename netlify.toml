@@ -1,6 +1,41 @@
 [[redirects]]
+  from = "/api/produtos"
+  to = "https://api.vhsys.com/v2/pedidos/:id_ped/produtos"
+  status = 200
+  force = true
+  headers = {X-From = "Netlify"}
+
+[[redirects]]
+  from = "/api/parcelas"
+  to = "https://api.vhsys.com/v2/pedidos/:id_ped/parcelas"
+  status = 200
+  force = true
+  headers = {X-From = "Netlify"}
+
+[[redirects]]
   from = "/api/clientes"
   to = "https://api.vhsys.com/v2/clientes"
+  status = 200
+  force = true
+  headers = {X-From = "Netlify"}
+
+[[redirects]]
+  from = "/api/vendedores"
+  to = "https://api.vhsys.com/v2/vendedores"
+  status = 200
+  force = true
+  headers = {X-From = "Netlify"}
+
+[[redirects]]
+  from = "/api/transportadoras"
+  to = "https://api.vhsys.com/v2/transportadoras"
+  status = 200
+  force = true
+  headers = {X-From = "Netlify"}
+
+[[redirects]]
+from = "/api/pedidos"
+  to = "https://api.vhsys.com/v2/pedidos"
   status = 200
   force = true
   headers = {X-From = "Netlify"}

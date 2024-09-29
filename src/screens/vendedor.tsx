@@ -1,22 +1,19 @@
 import React, {useEffect, useState} from 'react';
 import { View, Text, Image, StyleSheet, Dimensions, ActivityIndicator } from "react-native";
-import { ClienteScreenProps, RootStackParamList } from '../types';
+import { VendedorScreenPorps } from '../types';
 import {Picker} from '@react-native-picker/picker';
 import { Button } from 'react-native-paper';
-import { TClienteResponse } from '../types';
-import { useRoute, RouteProp } from '@react-navigation/native';
-import { dataClientes } from '../Mocks/produtoMock';
+import { TVendedorResponse } from '../types';
+// import { dataVendedor } from '../Mocks/produtoMock';
 
 var {width} = Dimensions.get('window');
 
-export default function Cliente({navigation}:ClienteScreenProps) {
-  const [client, setClient] = useState<TClienteResponse>();
+export default function Vendedor({route, navigation}:VendedorScreenPorps) {
+  const [vendedor, setVendedor] = useState<TVendedorResponse>();
   const [isLoading, setLoading] = useState(true);
-  const [data, setData] = useState<TClienteResponse[]>([]);
-  const route = useRoute<RouteProp<RootStackParamList, 'Cliente'>>();
-  const { vendedor } = route.params || {};
+  const [data, setData] = useState<TVendedorResponse[]>([]);
 
-  const getClientes = async () => {
+  const getVendedores = async () => {
     const headers = {
       'access-token': 'YGZSXYRIZVgQbCcXZGUZPDNRXWUHTE',
       'secret-access-token': 'EZp0ESVrg4rmZ0eWtPcdvNKNRTtSEC',
@@ -24,7 +21,7 @@ export default function Cliente({navigation}:ClienteScreenProps) {
       'content-type': 'application/json',
     };
     try {
-      const response = await fetch('/api/clientes', {
+      const response = await fetch('/api/vendedores', {
         method: 'GET',
         headers,
       });
@@ -35,20 +32,20 @@ export default function Cliente({navigation}:ClienteScreenProps) {
       console.error('Erro:', error);
     } finally {
       setLoading(false);
-      console.log('clientes', data)
+      console.log('vendedores', data)
     }
-    // setData(dataClientes);
+    // setData(dataVendedor)
     setLoading(false);
   };
 
   function handleSignIn() {
-    if(client){
-      return navigation.navigate('Painel', { cliente: client, vendedor: vendedor})
+    if(vendedor){
+      return navigation.navigate('Cliente', { vendedor: vendedor})
     }
   }
 
   useEffect(() => {
-    getClientes();
+    getVendedores();
   }, []);
       
     return (
@@ -62,22 +59,20 @@ export default function Cliente({navigation}:ClienteScreenProps) {
           style={styles.tinyLogo}
           source={require('../../assets/logo-no-background.png')}
         />
-        <Text style={styles.text}>Olá {vendedor ? vendedor.razao_vendedor.split(' ')[0] : ''}!</Text>
-        <Text style={styles.text}>Selecione um cliente</Text>
+        <Text style={styles.text}>Para iniciar selecione o vendedor</Text>
         <Picker
           style={styles.selectPicker}
-          selectedValue={client?.razao_cliente}
+          selectedValue={vendedor?.razao_vendedor}
           onValueChange={(itemValue, itemIndex) => {
             const selectedItem = data[itemIndex - 1];
-            setClient(selectedItem || null);
+            setVendedor(selectedItem || null);
         }}>
-            <Picker.Item label='Clientes' value='Clientes' />
+            <Picker.Item label='Selecione um vendedor' value='Selecione um vendedor' />
           {data.map((item) => {
-            return <Picker.Item label={item.razao_cliente} value={item.razao_cliente} key={item.id_cliente} />
+            return <Picker.Item label={item.razao_vendedor} value={item.razao_vendedor} key={item.id_vendedor} />
           })}
         </Picker>
-        <Button style={styles.button} buttonColor="#1F88D9" mode="contained" onPress={handleSignIn}>Avançar</Button>
-        <Button style={styles.button} textColor="white" mode="text" onPress={() => console.log('Pressed')}>Cadastrar</Button>
+        <Button style={styles.button} buttonColor="#1F88D9" mode="contained" onPress={handleSignIn}>Iniciar</Button>
         </>)}
       </View>
     );

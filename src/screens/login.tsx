@@ -9,7 +9,7 @@ export default function Login({navigation}:LoginScreenProps){
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
     function handleSignIn() {
-    return navigation.navigate("Cliente");
+    return navigation.navigate("Vendedor");
     }
 
     return (
