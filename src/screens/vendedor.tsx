@@ -32,7 +32,6 @@ export default function Vendedor({route, navigation}:VendedorScreenPorps) {
       console.error('Erro:', error);
     } finally {
       setLoading(false);
-      console.log('vendedores', data)
     }
     // setData(dataVendedor)
     setLoading(false);

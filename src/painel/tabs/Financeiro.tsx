@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { View, Text, ScrollView } from "react-native";
 import { FinanceiroScreenPorps, RootStackParamList, TPedido } from "../../types";
 import { ActivityIndicator, Card, DataTable, Divider, List } from 'react-native-paper';
 import { styles } from "../styles";
 import { SafeAreaView } from "react-native";
+import { PedidosContext } from '../../utils/PedidoContext';
 // import { dataPedido } from "../../Mocks/produtoMock";
 import { useRoute, RouteProp } from "@react-navigation/native";
 
@@ -12,53 +13,76 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
     const { cliente, vendedor } = route.params;
 	const [pedidos, setDataPedidos] = useState<TPedido[]>([]);
 	const [isLoading, setLoading] = useState(false);
+	const pedidosContext = useContext(PedidosContext);
 
 	{/* TODO fazer loop de parcelas e forma de pagamento */}
 
     const [items] = useState([
         {
-			id_ped_produto: 217211083,
-			id_pedido: 37548850,
-			id_produto: 65971505,
-			id_almoxarifado: null,
-			id_lote: null,
-			desc_produto: "Bucha - BUCHA S12",
-			qtde_produto: "3.0000",
-			desconto_produto: "0.30",
-			ipi_produto: "5.00",
-			icms_produto: "0.00",
-			valor_unit_produto: "1.990000",
-			valor_custo_produto: "0.550000",
-			valor_total_produto: "1.99",
-			valor_desconto: "0.00",
-			peso_produto: "0.00",
-			peso_liq_produto: "0.00",
-			info_adicional: "",
-			xPed_produto: "",
-			nItem_produto: "",
-			json_localizacoes: "[]"
+			"id_ped_produto": 217211087,
+			"id_pedido": 37548850,
+			"id_produto": 65971505,
+			"id_almoxarifado": null,
+			"id_lote": null,
+			"desc_produto": "Bucha - BUCHA S12",
+			"qtde_produto": "1.0000",
+			"desconto_produto": "0.00",
+			"ipi_produto": "5.00",
+			"icms_produto": "0.00",
+			"valor_unit_produto": "1.990000",
+			"valor_custo_produto": "0.550000",
+			"valor_total_produto": "1.99",
+			"valor_desconto": "0.00",
+			"peso_produto": "0.00",
+			"peso_liq_produto": "0.00",
+			"info_adicional": "",
+			"xPed_produto": "",
+			"nItem_produto": "",
+			"json_localizacoes": "[]"
 		},
 		{
-			id_ped_produto: 217211087,
-			id_pedido: 37548850,
-			id_produto: 65971505,
-			id_almoxarifado: null,
-			id_lote: null,
-			desc_produto: "Bucha - BUCHA S12",
-			qtde_produto: "1.0000",
-			desconto_produto: "0.00",
-			ipi_produto: "5.00",
-			icms_produto: "0.00",
-			valor_unit_produto: "1.990000",
-			valor_custo_produto: "0.550000",
-			valor_total_produto: "1.99",
-			valor_desconto: "0.00",
-			peso_produto: "0.00",
-			peso_liq_produto: "0.00",
-			info_adicional: "",
-			xPed_produto: "",
-			nItem_produto: "",
-			json_localizacoes: "[]"
+			"id_ped_produto": 217211088,
+			"id_pedido": 37548850,
+			"id_produto": 65986365,
+			"id_almoxarifado": null,
+			"id_lote": null,
+			"desc_produto": "Furadeira Impacto 500W",
+			"qtde_produto": "1.0000",
+			"desconto_produto": "0.00",
+			"ipi_produto": "5.00",
+			"icms_produto": "0.00",
+			"valor_unit_produto": "0.000000",
+			"valor_custo_produto": "0.000000",
+			"valor_total_produto": "0.00",
+			"valor_desconto": "0.00",
+			"peso_produto": "0.00",
+			"peso_liq_produto": "0.00",
+			"info_adicional": "",
+			"xPed_produto": "",
+			"nItem_produto": "",
+			"json_localizacoes": "[]"
+		},
+		{
+			"id_ped_produto": 217211089,
+			"id_pedido": 37548850,
+			"id_produto": 65955474,
+			"id_almoxarifado": null,
+			"id_lote": null,
+			"desc_produto": "Produto 1",
+			"qtde_produto": "1.0000",
+			"desconto_produto": "0.00",
+			"ipi_produto": "0.00",
+			"icms_produto": "0.00",
+			"valor_unit_produto": "120.000000",
+			"valor_custo_produto": "10.000000",
+			"valor_total_produto": "120.00",
+			"valor_desconto": "0.00",
+			"peso_produto": "0.00",
+			"peso_liq_produto": "0.00",
+			"info_adicional": "",
+			"xPed_produto": "",
+			"nItem_produto": "",
+			"json_localizacoes": "[]"
 		}
        ]);
 
@@ -67,38 +91,40 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
         'Em Andamento': {icon:'refresh-circle', color:'orange'},
         'Cancelado': {icon:'close-circle-outline', color:'red'},
         'Atendido': {icon:'check-circle-outline', color:'green'},
-    }
-
-	const getPedidos = async () => {
-		setLoading(true);
-        const headers = {
-          'access-token': 'YGZSXYRIZVgQbCcXZGUZPDNRXWUHTE',
-          'secret-access-token': 'EZp0ESVrg4rmZ0eWtPcdvNKNRTtSEC',
-          'cache-control': 'no-cache',
-          'content-type': 'application/json',
-        };
-        try {
-          const response = await fetch('/api/pedidos', {
-            method: 'GET',
-            headers,
-          });
-      
-          const json = await response.json();
-
-		  const pedidosFiltrados = json.data.filter((pedido: any) => 
-			pedido.vendedor_pedido_id === vendedor.id_vendedor && pedido.id_cliente === cliente.id_cliente
-		  );
-		  setDataPedidos(pedidosFiltrados); // Atualiza o estado com os pedidos filtrados
-        } catch (error) {
-          console.error('Erro:', error);
-        } finally {
-          setLoading(false);
-        }
     };
 
 	useEffect(() => {
-        getPedidos();
-    }, []);
+		if (pedidosContext) {
+		  pedidosContext.atualizarPedidos(cliente.id_cliente, vendedor.id_vendedor); // Chama a função ao carregar a página
+		}
+	  }, []);
+
+	// const getPedidos = async () => {
+	// 	setLoading(true);
+    //     const headers = {
+    //       'access-token': 'YGZSXYRIZVgQbCcXZGUZPDNRXWUHTE',
+    //       'secret-access-token': 'EZp0ESVrg4rmZ0eWtPcdvNKNRTtSEC',
+    //       'cache-control': 'no-cache',
+    //       'content-type': 'application/json',
+    //     };
+    //     try {
+    //       const response = await fetch('/api/pedidos', {
+    //         method: 'GET',
+    //         headers,
+    //       });
+      
+    //       const json = await response.json();
+
+	// 	  const pedidosFiltrados = json.data.filter((pedido: any) => 
+	// 		pedido.vendedor_pedido_id === vendedor.id_vendedor && pedido.id_cliente === cliente.id_cliente
+	// 	  );
+	// 	  setDataPedidos(pedidosFiltrados); // Atualiza o estado com os pedidos filtrados
+    //     } catch (error) {
+    //       console.error('Erro:', error);
+    //     } finally {
+    //       setLoading(false);
+    //     }
+    // };
     
     return (
         <SafeAreaView style={styles.container}>
@@ -112,11 +138,12 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                     <Text numberOfLines={1} ellipsizeMode="tail" style={{ color: 'white', maxWidth: 150 }}>{vendedor.razao_vendedor}</Text>
                 </View>
             </View>
-			{isLoading ?
+			{!pedidosContext ?
 			<View style={{height:'50%'}}>
 				<ActivityIndicator size={'large'} color="#145B91"/>
 			</View>
-			:(<ScrollView style={styles.scrollView}>
+			: pedidosContext.pedidos.length ?
+			<ScrollView style={styles.scrollView}>
                 {/* <View>
                     <View style={{display: "flex", justifyContent: "space-between", flexDirection: "row"}}>
                         <Card style={{backgroundColor: 'white', justifyContent: 'center'}}>
@@ -157,8 +184,8 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
 						</View>
                     </View>
                 </View> */}
-                <List.Section title="Pedidos do mês">
-                    {pedidos.slice().map((item, index) => (
+                <List.Section title={`Pedidos do cliente: ${cliente.razao_cliente}`}>
+                    {pedidosContext.pedidos.map((item, index) => (
                     <>
                         <List.Accordion
                             key={index}
@@ -267,8 +294,8 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                     </>
                     ))}
                 </List.Section>
-                
-            </ScrollView>) }
+            </ScrollView>:
+			<Text style={{ fontWeight: '600', height: '50%', alignSelf: 'center', color: 'grey', fontSize: 20 }}>Não há pedidos deste cliente</Text>}
         </SafeAreaView>
     );
   };

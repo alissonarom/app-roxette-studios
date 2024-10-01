@@ -1,6 +1,13 @@
 [[redirects]]
+  from = "/api/*"
+  to = "https://api.vhsys.com/v2/:splat"
+  status = 200
+  force = true
+  headers = {X-From = "Netlify"}
+
+  [[redirects]]
   from = "/api/produtos"
-  to = "https://api.vhsys.com/v2/pedidos/:id_ped/produtos"
+  to = "https://api.vhsys.com/v2/produtos"
   status = 200
   force = true
   headers = {X-From = "Netlify"}
@@ -22,13 +29,6 @@
 [[redirects]]
   from = "/api/vendedores"
   to = "https://api.vhsys.com/v2/vendedores"
-  status = 200
-  force = true
-  headers = {X-From = "Netlify"}
-
-[[redirects]]
-  from = "/api/transportadoras"
-  to = "https://api.vhsys.com/v2/transportadoras"
   status = 200
   force = true
   headers = {X-From = "Netlify"}

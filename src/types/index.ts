@@ -292,19 +292,18 @@ export type TProduto = {
 
 // Produto inserido no pedido
 export type TProdutoPedido = {
-    id_ped_produto: number;
-    id_pedido: number;
-    id_produto: number;
-    desc_produto: string;
-    qtde_produto: string;
-    desconto_produto: string | number | null;
-    ipi_produto: string;
-    icms_produto: string;
-    valor_unit_produto: string;
-    valor_custo_produto: string;
-    valor_total_produto: string;
-    peso_produto: string | number | null;
-    peso_liq_produto: string | number | null
+    id_produto: number,
+    desc_produto: string,
+    qtde_produto: string,
+    valor_unit_produto: string,
+    valor_custo_produto?: string,
+    valor_total_produto?: string,
+    desconto_produto?: any,
+    ipi_produto?: any,
+    icms_produto?: any,
+    peso_produto?: any,
+    peso_liq_produto?: any,
+
 };
 
 // Transportadora
@@ -336,10 +335,10 @@ export type TTransportadora =
 
 // Status do pedido
 export enum Status_pedido {
-        'Em Aberto',
-        'Em Andamento',
-        'Atendido',
-        'Cancelado'
+        'Em Aberto'='Em Aberto',
+        'Em Andamento'='Em Andamento',
+        'Atendido'='Atendido',
+        'Cancelado'='Cancelado'
 };
 
 // Lixeira
@@ -362,11 +361,11 @@ export enum Conta_lancada {
 
 // Parcelas do pedido
 export type TParcelas = {
-    id_pedido: number,
     data_parcela: string,
     valor_parcela: string,
     forma_pagamento: string,
-    observacoes_parcela: string
+    observacoes_parcela: string,
+    conta_liquidada: number
 };
 
 // Parcela criar pedido
@@ -437,14 +436,6 @@ export type TNovoPedido = {
     desconto_pedido: string | number | null;//Valor total do desconto
     peso_total_nota?: string | number | null;//Peso total do pedido
     peso_total_nota_liq?: string | number | null;//Peso liquido do pedido
-    frete_pedido?: string | number | null;//Valor do frete
-    valor_baseICMS?: string | number | null;//Valor da base de ICMS
-    valor_ICMS?: string | number | null;//Valor do ICMS
-    valor_baseST?: string | number | null;//Valor da base de ST
-    valor_ST?: string | number | null;//Valor do ST
-    valor_IPI?: string | number | null;//Valor do ST
-    transportadora_pedido?: string | null;//Nome da transportadora
-    id_transportadora?: number | null;//ID da transportadora
     data_pedido: string | null;//Data do pedido
     prazo_entrega: string | null;//Prazo de entrega (Dias)
     referencia_pedido: string | null;//Referência do pedido
@@ -453,6 +444,8 @@ export type TNovoPedido = {
     status_pedido: Status_pedido;//Status do pedido
     estoque_pedido: Estoque_pedido;//Estoque lançado 1 = Sim, 0 = Não
     contas_pedido: Conta_lancada;//Contas lançada 1 = Sim, 0 = Não
+    valor_total_nota?: string | number | null,
+    valor_total_produtos: string | number | null
 };
 
 export const dataFrete = [{ nome:'Destinatário', valor:1}, {nome: 'Terceiro', valor:2}, {nome:'Sem frete', valor:9}, {nome:'Emitente', valor:0}]

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { View, Text, ScrollView } from "react-native";
 import { NovoPedidoScreenPorps } from "../../types/index";
 import { Button, Card, DataTable, IconButton, TextInput, Snackbar, ActivityIndicator  } from 'react-native-paper';
@@ -10,15 +10,15 @@ import React from "react";
 import {
     TProduto,
     TProdutoPedido,
-    TTransportadora,
     TParcelas,
     TNovoPedido,
     RootStackParamList,
     Status_pedido,
     Estoque_pedido,
     Conta_lancada,
-    dataFrete
 } from "../../types/index";
+import {dataProdutoMock} from '../../Mocks/produtoMock'
+import { PedidosContext } from '../../utils/PedidoContext';
 import { useRoute, RouteProp } from '@react-navigation/native';
 // utils
 import { truncateText, dataFormaPagamento } from "../../utils";
@@ -36,11 +36,6 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
     // route params
     const route = useRoute<RouteProp<RootStackParamList, 'Pedido'>>();
     const { cliente, vendedor } = route.params;  // Acessa o parâmetro 'cliente'
-    //frete
-    const [frete, setFrete] = useState<String | null>(null);
-    const [transportadora, setTransportadora] = useState<TTransportadora | null>(null);
-    const [dataTransportadora, setDataTransportadora] = useState<TTransportadora[]>([]);
-    const [valorFrete, setValorFrete] = useState<string>('')
     //pagamento
     let novoArrayParcelas: TParcelas[] = []
     const [formaPagamento, setFormaPagamento] = useState(null);
@@ -53,14 +48,16 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
     const [isLoading, setLoading] = useState(false);
     const [isLoadingPedido, setLoadingPedido] = useState(false);
     const [visible, setVisible] = useState(false);
+    const pedidosContext = useContext(PedidosContext);
+
+    useEffect(() => {
+        getProdutos();
+    }, []);
 
     //clear function
     const clearPainel = () => {
         setArrayProdutos([]);
         setTotalDescontoProdutos(0)
-        setFrete(null)
-        setTransportadora(null)
-        setValorFrete('')
         setFormaPagamento(null)
         setParcelas('')
         setPagamentoParcelado([])
@@ -69,10 +66,12 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
         setLoadingPedido(false);
         setLoading(false);
         setVisible(true);
+        setTotalProdutos(0)
     }
 
     //GET--------------
     const getProdutos = async () => {
+        setLoading(true);
         const headers = {
           'access-token': 'YGZSXYRIZVgQbCcXZGUZPDNRXWUHTE',
           'secret-access-token': 'EZp0ESVrg4rmZ0eWtPcdvNKNRTtSEC',
@@ -92,182 +91,193 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
         } finally {
           setLoading(false);
         }
-    };
-    const getTransportadoras = async () => {
-        const headers = {
-          'access-token': 'YGZSXYRIZVgQbCcXZGUZPDNRXWUHTE',
-          'secret-access-token': 'EZp0ESVrg4rmZ0eWtPcdvNKNRTtSEC',
-          'cache-control': 'no-cache',
-          'content-type': 'application/json',
-        };
-        try {
-          const response = await fetch('/api/transportadoras', {
-            method: 'GET',
-            headers,
-          });
-      
-          const json = await response.json();
-          setDataTransportadora(json.data);
-        } catch (error) {
-          console.error('Erro:', error);
-        } finally {
-          setLoading(false);
-        }
+        // setDataProdutos(dataProdutoMock);
     };
 
-    //POST-------------
-    const criaNovoPedido = async () => {
-        setLoading(true)
-        setLoadingPedido(true)
-        try {
-            const pedidoResponse = await fetch('/api/pedidos', {
-              method: 'POST',
-              headers: {
+    // Monta pedido
+    const novoPedido = (): TNovoPedido => {
+            return {
+              id_cliente: cliente.id_cliente, // ID do cliente 
+              nome_cliente: cliente.razao_cliente, // Nome do cliente
+              vendedor_pedido: vendedor.razao_vendedor, // Nome do vendedor
+              vendedor_pedido_id: vendedor.id_vendedor, // ID do vendedor
+              desconto_pedido: String(totalDescontoProdutos), // Valor total do desconto
+              peso_total_nota: '0', // Peso total do pedido
+              peso_total_nota_liq: '0', // Peso líquido do pedido
+              data_pedido: new Date().toISOString().split('T')[0], // Data do pedido
+              prazo_entrega: new Date(prazo).toISOString().split('T')[0], // Prazo de entrega (Dias)
+              referencia_pedido: null, // Referência do pedido
+              obs_pedido: observacao, // Observações do pedido
+              obs_interno_pedido: null, // Observação interna do pedido
+              status_pedido: Status_pedido["Em Aberto"], // Status do pedido
+              estoque_pedido: Estoque_pedido.Não, // Estoque lançado (Sim/Não)
+              contas_pedido: Conta_lancada.Não, // Contas lançadas (Sim/Não)
+              valor_total_produtos: totalProdutos
+            };
+    };
+
+    // Função para criar o pedido
+const postPedido = async (novoPedido:TNovoPedido) => {
+    try {
+        const pedidoResponse = await fetch('/api/pedidos', {
+            method: 'POST',
+            headers: {
                 'access-token': 'YGZSXYRIZVgQbCcXZGUZPDNRXWUHTE',
                 'secret-access-token': 'EZp0ESVrg4rmZ0eWtPcdvNKNRTtSEC',
                 'cache-control': 'no-cache',
                 'content-type': 'application/json',
-              },
-              body: JSON.stringify(novoPedido),
-            });
-        
-            if (!pedidoResponse.ok) {
-              throw new Error('Erro ao criar o pedido');
-            }
-            const pedidoData = await pedidoResponse.json();
-            const idPedido = pedidoData.data[0].id_ped;
+            },
+            body: JSON.stringify(novoPedido),
+        });
+        console.log('novoPedido', novoPedido);
+        if (!pedidoResponse.ok) {
+            console.error('Erro: gerar pedido');
+            throw new Error('Erro ao criar o pedido');
+        }
+        const pedidoData = await pedidoResponse.json();
+        console.log('Pedido criado com sucesso:', pedidoData);
+        return pedidoData.data[0].id_ped; // Retorna o ID do pedido criado
+    } catch (error) {
+        console.error('Erro ao criar o pedido:', error);
+        throw error;
+    }
+};
 
-        // Produtos a serem cadastrados no pedido
-        const produtos = arrayProdutos.map((produto) => ({
-        qtde_produto: produto.qtde_produto,
-        id_produto: produto.id_produto,
-        valor_unit_produto: produto.valor_unit_produto,
-        desc_produto: produto.desc_produto,
-        }));
-
-        // Requisição para cadastrar os produtos no pedido
-        const produtosResponse = await fetch(`/api/produtos?id_ped=${idPedido}`, {
+// Função para adicionar os produtos ao pedido
+const postProdutos = async (idPedido:number, produtos:TProdutoPedido[]) => {
+    try {
+        console.log(`/api/produtos-pedido?id_ped=${idPedido}`);
+        const produtosResponse = await fetch(`/api/pedido/${idPedido}/produtos`, {
             method: 'POST',
             headers: {
-              'access-token': 'YGZSXYRIZVgQbCcXZGUZPDNRXWUHTE',
-              'secret-access-token': 'EZp0ESVrg4rmZ0eWtPcdvNKNRTtSEC',
-              'cache-control': 'no-cache',
-              'content-type': 'application/json',
+                'access-token': 'YGZSXYRIZVgQbCcXZGUZPDNRXWUHTE',
+                'secret-access-token': 'EZp0ESVrg4rmZ0eWtPcdvNKNRTtSEC',
+                'cache-control': 'no-cache',
+                'content-type': 'application/json',
             },
             body: JSON.stringify(produtos),
         });
         if (!produtosResponse.ok) {
-          throw new Error('Erro ao cadastrar os produtos no pedido');
+            console.error('Erro: gravar produtos no pedido');
+            throw new Error('Erro ao cadastrar os produtos no pedido');
         }
+        const produtosData = await produtosResponse.json(); // Espera a resolução da Promise
+        console.log('Produtos cadastrados com sucesso no pedido:', idPedido);
+        console.log('produtosResponse:', produtosData); // Agora `produtosData` contém o objeto resolvido
+        
+    } catch (error) {
+        console.error('Erro ao cadastrar os produtos no pedido:', error);
+        throw error;
+    }
+};
 
-        // Parcelas a serem cadastradas no pedido
-        const parcelas = pagamentoParcelado.map((parcelas) => (
-            {
-                data_parcela: parcelas.data_parcela,// Data da parcela no formato "YYYY-MM-DD"
-                valor_parcela: parcelas.valor_parcela,          // Valor da parcela como string no formato "00.00"
-                forma_pagamento: parcelas.forma_pagamento,        // Forma de pagamento
-                observacoes_parcela: parcelas.observacoes_parcela,    // Observações sobre a parcela
-                conta_liquidada: parcelas
-            }
-        ))
-
-        // Requisição para cadastrar as parcelas no pedido
+// Função para adicionar as parcelas ao pedido
+const postParcelas = async (idPedido:number, parcelas:TParcelas[]) => {
+    try {
+        console.log(`/api/parcelas?id_ped=${idPedido}`);
         const parcelaResponse = await fetch(`/api/parcelas?id_ped=${idPedido}`, {
             method: 'POST',
             headers: {
-              'access-token': 'YGZSXYRIZVgQbCcXZGUZPDNRXWUHTE',
-              'secret-access-token': 'EZp0ESVrg4rmZ0eWtPcdvNKNRTtSEC',
-              'cache-control': 'no-cache',
-              'content-type': 'application/json',
+                'access-token': 'YGZSXYRIZVgQbCcXZGUZPDNRXWUHTE',
+                'secret-access-token': 'EZp0ESVrg4rmZ0eWtPcdvNKNRTtSEC',
+                'cache-control': 'no-cache',
+                'content-type': 'application/json',
             },
             body: JSON.stringify(parcelas),
         });
-        const parcelaData = await parcelaResponse.json();
-        console.log('Parcela cadastrada com sucesso:', parcelaData);
-        //TODO criar uma função clear
-        
-        } catch (error) {
-        console.error('Erro ao criar o pedido ou cadastrar os produtos:', error);
-        }finally {
-            clearPainel()
-          }
-    };
+        if (!parcelaResponse.ok) {
+            console.error('Erro: cadastrar parcelas no pedido');
+            throw new Error('Erro ao cadastrar as parcelas no pedido');
+        }
+        const parcelasData = await parcelaResponse.json(); // Espera a resolução da Promise
+        console.log('Parcelas cadastradas com sucesso no pedido:', idPedido);
+        console.log('parcelaResponse:', parcelasData); // Agora `produtosData` contém o objeto resolvido
+    } catch (error) {
+        console.error('Erro ao cadastrar as parcelas no pedido:', error);
+        throw error;
+    }
+};
 
-    // Monta produtos do pedido
-    const adicionarProduto = () => {
+// Função principal para criar o pedido, cadastrar produtos e parcelas
+const criaNovoPedido = async () => {
+    setLoading(true);
+    setLoadingPedido(true);
+    try {
+        // Cria o pedido
+        const idPedido = await postPedido(novoPedido());
+
+        // Cadastra os produtos no pedido
+        const produtos = arrayProdutos.map((produto) => ({
+            id_produto: produto.id_produto,
+            desc_produto: produto.desc_produto,
+            qtde_produto: parseFloat(produto.qtde_produto).toFixed(4),
+            valor_unit_produto: parseFloat(produto.valor_unit_produto).toFixed(4),
+            desconto_produto: produto.desconto_produto ? parseFloat(produto.desconto_produto).toFixed(2) : undefined,
+            ipi_produto: produto.ipi_produto ? parseFloat(produto.ipi_produto).toFixed(2) : undefined,
+            icms_produto: produto.icms_produto ? parseFloat(produto.icms_produto).toFixed(2) : undefined,
+            valor_custo_produto: produto.valor_custo_produto ? parseFloat(produto.valor_custo_produto).toFixed(4) : undefined,
+            peso_produto: produto.peso_produto ? parseFloat(produto.peso_produto).toFixed(2) : undefined,
+            peso_liq_produto: produto.peso_liq_produto ? parseFloat(produto.peso_liq_produto).toFixed(2) : undefined
+        }));
+        console.log('produtos inside criaNovoPedido', produtos)
+        await postProdutos(idPedido, produtos);
+
+        // Cadastra as parcelas no pedido
+        const parcelas = pagamentoParcelado.map((parcela) => ({
+            data_parcela: parcela.data_parcela,
+            valor_parcela: parcela.valor_parcela,
+            forma_pagamento: parcela.forma_pagamento,
+            observacoes_parcela: parcela.observacoes_parcela,
+            conta_liquidada: parcela.conta_liquidada
+        }));
+        await postParcelas(idPedido, parcelas);
+
+        // Atualiza pedidos, se necessário
+        if (pedidosContext) {
+            pedidosContext.atualizarPedidos(cliente.id_cliente, vendedor.id_vendedor);
+        }
+
+    } catch (error) {
+        console.error('Erro ao criar o pedido ou cadastrar os produtos e parcelas:', error);
+    } finally {
+        setLoading(false);
+        setLoadingPedido(false);
+        clearPainel();
+    }
+};
+
+// Monta produtos do pedido
+const adicionarProduto = () => {
         if (produto && quantidadeProdutos) {
           const novoProduto: TProdutoPedido = {
-            id_ped_produto: arrayProdutos.length + 1, // ou gerado por outro meio
-            id_pedido: 123, // ID do pedido, substitua conforme necessário
             id_produto: produto.id_produto,
             desc_produto: produto.desc_produto,
             qtde_produto: String(quantidadeProdutos),
-            desconto_produto: descontoProdutos,
-            ipi_produto: produto.ipi_produto || '0',
-            icms_produto: produto.icms_produto || '0',
             valor_unit_produto: produto.valor_produto,
             valor_custo_produto: produto.valor_custo_produto,
             valor_total_produto: (parseFloat(produto.valor_produto) * parseFloat(quantidadeProdutos)).toFixed(2),
-            peso_produto: produto.peso_produto,
-            peso_liq_produto: produto.peso_liq_produto,
+            desconto_produto: descontoProdutos
           };
-            setTotalProdutos(totalProdutos + parseInt(novoProduto.valor_total_produto));
+            setTotalProdutos(totalProdutos + (parseInt(quantidadeProdutos) * parseInt(produto.valor_produto)));
             setTotalDescontoProdutos(totalDescontoProdutos + (descontoProdutos ? parseInt(descontoProdutos): 0));
             setArrayProdutos((prevArray) => [...prevArray, novoProduto]);
         }
         setProduto(null); // Reset Picker
         setQuantidadeProdutos('');
         setDescontoProdutos('');
-    };
-    // Monta pedido
-    const novoPedido = (): TNovoPedido => {
-        return {
-          id_cliente: cliente.id_cliente, // ID do cliente 
-          nome_cliente: cliente.razao_cliente, // Nome do cliente
-          vendedor_pedido: vendedor.razao_vendedor, // Nome do vendedor
-          vendedor_pedido_id: vendedor.id_vendedor, // ID do vendedor
-          desconto_pedido: totalDescontoProdutos, // Valor total do desconto
-          peso_total_nota: null, // Peso total do pedido
-          peso_total_nota_liq: null, // Peso líquido do pedido
-          frete_pedido: valorFrete, // Valor do frete
-          valor_baseICMS: null, // Valor da base de ICMS
-          valor_ICMS: null, // Valor do ICMS
-          valor_baseST: null, // Valor da base de ST
-          valor_ST: null, // Valor do ST
-          valor_IPI: null, // Valor do IPI
-          transportadora_pedido: transportadora?.desc_transportadora, // Nome da transportadora
-          id_transportadora: transportadora?.id_transportadora, // ID da transportadora
-          data_pedido: String(new Date()), // Data do pedido
-          prazo_entrega: String(prazo), // Prazo de entrega (Dias)
-          referencia_pedido: null, // Referência do pedido
-          obs_pedido: observacao, // Observações do pedido
-          obs_interno_pedido: null, // Observação interna do pedido
-          status_pedido: Status_pedido["Em Aberto"], // Status do pedido
-          estoque_pedido: Estoque_pedido.Não, // Estoque lançado (Sim/Não)
-          contas_pedido: Conta_lancada.Não, // Contas lançadas (Sim/Não)
-        };
-    };
-
-    useEffect(() => {
-        getProdutos();
-        getTransportadoras();
-    }, []);
+};
       
     return (
         <SafeAreaView style={styles.container}>
             <View style={{ backgroundColor: "#145B91", display: "flex", flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 5 }}>
                 <View>
                         <Text style={{ fontWeight: '600', color: 'white' }}>Cliente</Text>
-                        <Text numberOfLines={1} ellipsizeMode="tail" style={{ color: 'white', maxWidth: 150 }}>{cliente.razao_cliente}</Text>
+                        <Text numberOfLines={1} ellipsizeMode="tail" style={{ color: 'white', maxWidth: 130 }}>{cliente.razao_cliente}</Text>
                 </View>
                 <View>
                         <Text style={{ fontWeight: '600', color: 'white' }}>Vendedor</Text>
-                        <Text numberOfLines={1} ellipsizeMode="tail" style={{ color: 'white', maxWidth: 150 }}>{vendedor.razao_vendedor}</Text>
+                        <Text numberOfLines={1} ellipsizeMode="tail" style={{ color: 'white', maxWidth: 130 }}>{vendedor.razao_vendedor}</Text>
                 </View>
-                {/* <View>
-                    <Text style={{ fontWeight: '700', color: 'white' }}>Pedido</Text>
-                    <Text style={{ fontWeight: '700', color: 'white' }}>12548</Text>
-                </View> */}
             </View>
             {isLoading ? (
             <View>
@@ -338,7 +348,7 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                                             <DataTable.Title numeric style={{ justifyContent: 'center', maxWidth: 50, paddingBottom: 0 }}>Total</DataTable.Title>
                                         </DataTable.Header>
                                         {arrayProdutos.map((item, index) => (
-                                            <DataTable.Row key={item.id_ped_produto}>
+                                            <DataTable.Row key={index}>
                                                 <DataTable.Cell style={{ width: 90 }} textStyle={{ fontSize: 12 }}>{item.desc_produto}</DataTable.Cell>
                                                 <DataTable.Cell style={{ justifyContent: 'center', maxWidth: 30 }} textStyle={{ fontSize: 11 }}>{Number(item.qtde_produto)}</DataTable.Cell>
                                                 <DataTable.Cell style={{ justifyContent: 'center', maxWidth: 40 }} textStyle={{ fontSize: 11 }}>{`R$${Number(item.valor_unit_produto)}`}</DataTable.Cell>
@@ -349,50 +359,6 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                                         ))}
                                     </DataTable>
                                 </View> : null}
-                    </Card>
-                    {/* Frete */}
-                    <Card mode="elevated" style={styles.cardPanel}>
-                            <Text style={styles.h3}>Frete</Text>
-                            <View style={styles.cardPanelContent}>
-                                <Picker
-                                    dropdownIconColor="#9E9E9E"
-                                    placeholder="Selecione um tipo de frete"
-                                    prompt="Fretes"
-                                    style={styles.selectPicker}
-                                    selectedValue={frete}
-                                    onValueChange={(itemValue) => {
-                                        setFrete(itemValue);
-                                    } }>
-                                    <Picker.Item label="Sem frete" />
-                                    {dataFrete.map((item, index) => {
-                                        return <Picker.Item label={item.nome} value={item.nome} key={index} />;
-                                    })}
-                                </Picker>
-                                <Picker
-                                    dropdownIconColor="#9E9E9E"
-                                    placeholder="Selecione uma trasportadora"
-                                    prompt="Transportadora"
-                                    style={styles.selectPicker}
-                                    selectedValue={transportadora?.desc_transportadora}
-                                    onValueChange={(itemValue, itemIndex) => {
-                                        const selectedItem = dataTransportadora[itemIndex - 1];
-                                        setTransportadora(selectedItem || null);
-                                    } }>
-                                    <Picker.Item label="Transportadora" />
-                                    {dataTransportadora.map((item) => {
-                                        return <Picker.Item label={item.desc_transportadora} value={item.desc_transportadora} key={item.id_transportadora} />;
-                                    })}
-                                </Picker>
-                                <TextInput
-                                    outlineColor='#145B91'
-                                    activeOutlineColor='#145B91'
-                                    mode="outlined"
-                                    label="Valor"
-                                    style={{ marginHorizontal: 5, width: 80, flexShrink: 1, backgroundColor: 'white', fontSize: 14, fontFamily: 'Roboto' }}
-                                    value={valorFrete}
-                                    onChangeText={setValorFrete}
-                                    disabled={!frete} />
-                            </View>
                     </Card>
                     {/* Prazo */}
                     {/* TODO criar máscara para datas */}
@@ -455,11 +421,11 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                                                 const numParcelas = parcelas ? parseInt(parcelas) : 1;
                                                 for (let i = 1; i <= numParcelas; i++) {
                                                     novoArrayParcelas.push({
-                                                        id_pedido: i,
                                                         data_parcela: prazo ? String(prazo) : '',
                                                         valor_parcela: String(totalProdutos / numParcelas),
                                                         forma_pagamento: formaPagamento ? formaPagamento : 'Dinheiro',
-                                                        observacoes_parcela: observacao || ''
+                                                        observacoes_parcela: observacao || '',
+                                                        conta_liquidada: 0
                                                     });
                                                 }
                                             }
@@ -476,9 +442,9 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                                         <DataTable.Title numeric style={styles.tableTitlePagamento}>Data</DataTable.Title>
                                         <DataTable.Title style={styles.tableTitlePagamento}>Valor</DataTable.Title>
                                     </DataTable.Header>
-                                    {pagamentoParcelado.map((parcelas) => (
-                                        <DataTable.Row key={parcelas.id_pedido}>
-                                            <DataTable.Cell style={[styles.tableTitlePagamento, { maxWidth: 25 }]} textStyle={{ fontSize: 13 }}>{parcelas.id_pedido}</DataTable.Cell>
+                                    {pagamentoParcelado.map((parcelas, index) => (
+                                        <DataTable.Row key={index}>
+                                            <DataTable.Cell style={[styles.tableTitlePagamento, { maxWidth: 25 }]} textStyle={{ fontSize: 13 }}>{index+1}</DataTable.Cell>
                                             <DataTable.Cell style={styles.tableTitlePagamento} textStyle={{ fontSize: 13 }}>{parcelas.forma_pagamento}</DataTable.Cell>
                                             <DataTable.Cell style={styles.tableTitlePagamento} textStyle={{ fontSize: 13 }}>{parcelas.data_parcela}</DataTable.Cell>
                                             <DataTable.Cell style={styles.tableTitlePagamento} textStyle={{ fontSize: 13 }}>{`R$ ${Number(parcelas.valor_parcela)}`}</DataTable.Cell>
@@ -510,27 +476,23 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                                 <Text style={styles.textFooter}>R$ {totalProdutos}</Text>
                     </View>
                     <View style={styles.subFooter}>
-                                <Text style={styles.textFooter}>Frete</Text>
-                                <Text style={styles.textFooter}>R$ {valorFrete ? parseInt(valorFrete) : 0}</Text>
-                    </View>
-                    <View style={styles.subFooter}>
                                 <Text style={styles.textFooter}>Desconto</Text>
                                 <Text style={{ color: '#ff9090', fontWeight: "600" }}>-R$ {totalDescontoProdutos ? totalDescontoProdutos : 0}</Text>
                     </View>
                     <View style={[styles.subFooter, { marginBottom: 10 }]}>
                                 <Text style={[styles.textFooter, { fontSize: 21 }]}>Total</Text>
-                                <Text style={[styles.textFooter, { fontSize: 21 }]}>R$ {(totalProdutos + (valorFrete ? parseInt(valorFrete) : 0)) - totalDescontoProdutos}</Text>
+                                <Text style={[styles.textFooter, { fontSize: 21 }]}>R$ {totalProdutos - totalDescontoProdutos}</Text>
                     </View>
                     <Button
-                                style={{ marginHorizontal: 60 }}
-                                disabled={(arrayProdutos.length && pagamentoParcelado.length) ? false : true}
-                                labelStyle={{ fontSize: 15, fontWeight: "600" }}
-                                buttonColor='white'
-                                textColor="#145B91"
-                                mode="contained"
-                                onPress={criaNovoPedido}
-                            >
-                                Criar Pedido
+                        style={{ marginHorizontal: 60 }}
+                        disabled={(arrayProdutos.length && pagamentoParcelado.length) ? false : true}
+                        labelStyle={{ fontSize: 15, fontWeight: "600" }}
+                        buttonColor='white'
+                        textColor="#145B91"
+                        mode="contained"
+                        onPress={criaNovoPedido}
+                    >
+                        Criar Pedido
                     </Button>
                 </View>
             

@@ -23,6 +23,10 @@ export default function DatePicker({ date, setDate }: DatePickerProps) {
     },
     [setOpen, setDate]
   );
+
+    const formatDisplayDate = (date: Date) => {
+      return new Intl.DateTimeFormat('pt-BR').format(date); // "DD/MM/YYYY"
+    };
 // TODO alterar idioma e cores tema do calendário
   return (
     <SafeAreaProvider>
@@ -33,7 +37,7 @@ export default function DatePicker({ date, setDate }: DatePickerProps) {
             mode="outlined"
             style={{marginTop: 6, backgroundColor: 'white', fontSize: 14, fontFamily: 'Roboto', height: 50}}
             onFocus={() => setOpen(true)}
-            value={`${date}`}
+            value={formatDisplayDate(date)}
         />
         <DatePickerModal
           disableStatusBarPadding

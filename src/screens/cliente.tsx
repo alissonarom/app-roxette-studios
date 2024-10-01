@@ -35,7 +35,6 @@ export default function Cliente({navigation}:ClienteScreenProps) {
       console.error('Erro:', error);
     } finally {
       setLoading(false);
-      console.log('clientes', data)
     }
     // setData(dataClientes);
     setLoading(false);
