@@ -290,6 +290,10 @@ export type TProduto = {
     imagens: any[];
 };
 
+export type TProdutoOnPedido ={
+    
+}
+
 // Produto inserido no pedido
 export type TProdutoPedido = {
     id_produto: number,
@@ -303,7 +307,11 @@ export type TProdutoPedido = {
     icms_produto?: any,
     peso_produto?: any,
     peso_liq_produto?: any,
-
+    id_ped_produto?: number,
+    id_lote?: number,
+    id_almoxarifado?: number,
+    info_adicional?: string,
+    valor_desconto: string
 };
 
 // Transportadora
@@ -368,15 +376,6 @@ export type TParcelas = {
     conta_liquidada: number
 };
 
-// Parcela criar pedido
-export type TParcelaCriarPedido = {
-    data_parcela: string;           // Data da parcela no formato "YYYY-MM-DD"
-    valor_parcela: string;          // Valor da parcela como string no formato "00.00"
-    forma_pagamento: string;        // Forma de pagamento
-    observacoes_parcela: string;    // Observações sobre a parcela
-    conta_liquidada: number;        // Indicador se a conta está liquidada (0 ou 1)
-}
-
 // Pedido via CRM
 export type TPedido = {
     id_ped: number;
@@ -425,9 +424,11 @@ export type TPedido = {
     pagamento_com_conta_integrada: number;
     link_pgto_gerado: number;
     lixeira: string;
+    produtos: TProdutoPedido[],
+    parcelas: TParcelas[]
 };
 
-//Criar pedido
+// POST Criar pedido
 export type TNovoPedido = {
     id_cliente: number | null; //ID do cliente 
     nome_cliente: string; //Nome do cliente

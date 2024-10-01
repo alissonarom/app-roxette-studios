@@ -1,7 +1,7 @@
 import { useEffect, useState, useContext } from "react";
 import { View, Text, ScrollView } from "react-native";
 import { FinanceiroScreenPorps, RootStackParamList, TPedido } from "../../types";
-import { ActivityIndicator, Card, DataTable, Divider, List } from 'react-native-paper';
+import { ActivityIndicator, Button, Card, DataTable, Divider, List } from 'react-native-paper';
 import { styles } from "../styles";
 import { SafeAreaView } from "react-native";
 import { PedidosContext } from '../../utils/PedidoContext';
@@ -222,7 +222,7 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                                 </View>
                             </View>
                             <View style={styles.viewCardPedido}>
-                                <DataTable >
+                                <DataTable>
                                     <DataTable.Header>
                                         <DataTable.Title style={{ paddingBottom: 0}}>Produtos</DataTable.Title>
                                         <DataTable.Title numeric style={{ justifyContent: 'center', maxWidth: 30, paddingBottom: 0}}>Qtd</DataTable.Title>
@@ -231,63 +231,63 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                                         <DataTable.Title numeric style={{ justifyContent: 'center', maxWidth: 35, paddingBottom: 0 }}>Desc.</DataTable.Title>
                                         <DataTable.Title numeric style={{ justifyContent: 'center', maxWidth: 50, paddingBottom: 0 }}>Total</DataTable.Title>
                                     </DataTable.Header>
-                                    {items.slice().map((item, index) => (
-                                        <DataTable.Row key={index+item.id_pedido}>
-                                            <DataTable.Cell style={{ width: 90}} textStyle={{fontSize: 10}}>{item.desc_produto}</DataTable.Cell>
-                                            <DataTable.Cell style={{justifyContent: 'center', maxWidth: 30}} textStyle={{fontSize: 10}}>{Number(item.qtde_produto)}</DataTable.Cell>
-                                            <DataTable.Cell style={{justifyContent: 'center', maxWidth: 40}} textStyle={{fontSize: 10}}>{Number(item.valor_unit_produto)}</DataTable.Cell>
-                                            <DataTable.Cell style={{justifyContent: 'center', maxWidth: 35}} textStyle={{fontSize: 10}}>{Number(item.valor_custo_produto)}</DataTable.Cell>
-                                            <DataTable.Cell style={{justifyContent: 'center', maxWidth: 35}} textStyle={{fontSize: 10}}>{`R$ ${Number(item.desconto_produto)}`}</DataTable.Cell>
-                                            <DataTable.Cell style={{justifyContent: 'center', maxWidth: 50}} textStyle={{fontSize: 10}}>{`R$ ${Number(item.valor_total_produto) * Number(item.qtde_produto)-Number(item.desconto_produto)}`}</DataTable.Cell>
+                                    {item.produtos.slice().map((produtos, index) => (
+                                        <DataTable.Row key={produtos.id_produto}>
+                                            <DataTable.Cell style={{ width: 90}} textStyle={{fontSize: 10}}>{index+1}</DataTable.Cell>
+                                            <DataTable.Cell style={{justifyContent: 'center', maxWidth: 30}} textStyle={{fontSize: 10}}>{Number(produtos.qtde_produto)}</DataTable.Cell>
+                                            <DataTable.Cell style={{justifyContent: 'center', maxWidth: 40}} textStyle={{fontSize: 10}}>{Number(produtos.valor_unit_produto)}</DataTable.Cell>
+                                            <DataTable.Cell style={{justifyContent: 'center', maxWidth: 35}} textStyle={{fontSize: 10}}>{Number(produtos.valor_custo_produto)}</DataTable.Cell>
+                                            <DataTable.Cell style={{justifyContent: 'center', maxWidth: 35}} textStyle={{fontSize: 10}}>{`R$ ${Number(produtos.desconto_produto)}`}</DataTable.Cell>
+                                            <DataTable.Cell style={{justifyContent: 'center', maxWidth: 50}} textStyle={{fontSize: 10}}>{`R$ ${Number(produtos.valor_total_produto)-Number(produtos.desconto_produto)}`}</DataTable.Cell>
                                         </DataTable.Row>
                                     ))}
                                 </DataTable>
                             </View>
-							{item.transportadora_pedido &&
-							<View style={styles.viewCardPedido}>
-								<View style={{ display: 'flex', flexDirection: 'row' }}>
-									<Text style={{ fontWeight: '600' }}>Frete: </Text>
-									<Text>{item.transportadora_pedido}</Text>
+							{item.parcelas.length && 
+							(<View style={styles.viewCardPedido}>
+                                <DataTable>
+                                    <DataTable.Header>
+                                        <DataTable.Title style={{ paddingBottom: 0}}>Parcelas</DataTable.Title>
+                                        <DataTable.Title numeric style={{ justifyContent: 'center', maxWidth: 30, paddingBottom: 0}}>Data</DataTable.Title>
+                                        <DataTable.Title numeric style={{ justifyContent: 'center', maxWidth: 40, paddingBottom: 0 }}>Valor</DataTable.Title>
+                                        <DataTable.Title style={{ justifyContent: 'center', maxWidth: 35, paddingBottom: 0 }}>Forma pagamento</DataTable.Title>
+                                        <DataTable.Title numeric style={{ justifyContent: 'center', maxWidth: 35, paddingBottom: 0 }}>Liquidada</DataTable.Title>
+                                    </DataTable.Header>
+                                    {item.parcelas.slice().map((parcelas, index) => (
+                                        <DataTable.Row key={index}>
+                                            <DataTable.Cell style={{ width: 90}} textStyle={{fontSize: 10}}>{index+1}</DataTable.Cell>
+                                            <DataTable.Cell style={{justifyContent: 'center', maxWidth: 30}} textStyle={{fontSize: 10}}>{Number(parcelas.data_parcela)}</DataTable.Cell>
+                                            <DataTable.Cell style={{justifyContent: 'center', maxWidth: 40}} textStyle={{fontSize: 10}}>{Number(parcelas.valor_parcela)}</DataTable.Cell>
+                                            <DataTable.Cell style={{justifyContent: 'center', maxWidth: 35}} textStyle={{fontSize: 10}}>{Number(parcelas.forma_pagamento)}</DataTable.Cell>
+                                            <DataTable.Cell style={{justifyContent: 'center', maxWidth: 35}} textStyle={{fontSize: 10}}>{`R$ ${Number(parcelas.conta_liquidada)}`}</DataTable.Cell>
+                                        </DataTable.Row>
+                                    ))}
+                                </DataTable>
+                            </View>)}
+							<View style={styles.footer}>
+								<View style={styles.subFooter}>
+									<Text style={styles.textFooter}>Total em Produto</Text>
+									<Text style={styles.textFooter}>R$ {item.frete_pedido}</Text>
 								</View>
-								<View style={{ display: 'flex', flexDirection: 'row' }}>
-									<Text style={{ fontWeight: '600' }}>R$ </Text>
-									<Text>{item.frete_pedido}</Text>
+								<View style={styles.subFooter}>
+									<Text style={styles.textFooter}>Desconto</Text>
+									<Text style={{ color: '#ff9090', fontWeight: "600" }}>-R$ {item.desconto_pedido}</Text>
 								</View>
-                            </View>}
-							<View style={styles.viewCardPedido}>
-								<View style={{ display: 'flex', flexDirection: 'row' }}>
-									<Text style={{ fontWeight: '600' }}>Criado em: </Text>
-									<Text>{item.data_pedido}</Text>
+								<View style={[styles.subFooter, { marginBottom: 10 }]}>
+									<Text style={[styles.textFooter, { fontSize: 21 }]}>Total</Text>
+									<Text style={[styles.textFooter, { fontSize: 21 }]}>R$ {item.valor_total_nota}</Text>
 								</View>
-								<View style={{ display: 'flex', flexDirection: 'row' }}>
-									<Text style={{ fontWeight: '600' }}>Entrega </Text>
-									<Text>{item.prazo_entrega}</Text>
-								</View>
-                            </View>
-							
-							<View style={styles.viewCardPedido}>
-								<View style={{ display: 'flex', flexDirection: 'row' }}>
-									<Text style={{ fontWeight: '600' }}>Forma de pagamento: </Text>
-									<Text>PIX</Text>
-								</View>
-                            </View>
-							<View style={styles.resumo}>
-								<View style={styles.resumoView}>
-									<Text style={styles.resumoTexts}>Subtotal produtos</Text>
-									<Text style={styles.resumoTexts}>R$ {item.valor_total_produtos}</Text>
-								</View>
-								<View style={styles.resumoView}>
-									<Text style={styles.resumoTexts}>Frete</Text>
-									<Text style={styles.resumoTexts}>R$ {item.frete_pedido}</Text>
-								</View>
-								<View style={styles.resumoView}>
-									<Text style={styles.resumoTexts}>Desconto</Text>
-									<Text style={styles.resumoTexts}>-R$ {item.desconto_pedido}</Text>
-								</View>
-                            </View>
-							<View style={[styles.resumoView, {backgroundColor: '#145B91', paddingRight: 15}]}>
-								<Text style={{fontWeight: '600', color: 'white'}}>TOTAL</Text>
-								<Text style={{fontWeight: '600', color: 'white'}}>R$ {item.valor_total_nota}</Text>
+								<Button
+									style={{ marginHorizontal: 60 }}
+									disabled
+									labelStyle={{ fontSize: 15, fontWeight: "600" }}
+									buttonColor='white'
+									textColor="#145B91"
+									mode="contained"
+									onPress={()=>{}}
+								>
+									Quitar pedido
+								</Button>
 							</View>
                         </List.Accordion>
                         <Divider style={{ marginVertical: 5, backgroundColor: 'transparent' }} />

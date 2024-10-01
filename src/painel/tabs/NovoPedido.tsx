@@ -21,7 +21,7 @@ import {dataProdutoMock} from '../../Mocks/produtoMock'
 import { PedidosContext } from '../../utils/PedidoContext';
 import { useRoute, RouteProp } from '@react-navigation/native';
 // utils
-import { truncateText, dataFormaPagamento } from "../../utils";
+import { truncateText, dataFormaPagamento, formatDate } from "../../utils";
 
 const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
     // produto
@@ -117,7 +117,7 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
     };
 
     // Função para criar o pedido
-const postPedido = async (novoPedido:TNovoPedido) => {
+    const postPedido = async (novoPedido:TNovoPedido) => {
     try {
         const pedidoResponse = await fetch('/api/pedidos', {
             method: 'POST',
@@ -141,13 +141,13 @@ const postPedido = async (novoPedido:TNovoPedido) => {
         console.error('Erro ao criar o pedido:', error);
         throw error;
     }
-};
+    };
 
-// Função para adicionar os produtos ao pedido
-const postProdutos = async (idPedido:number, produtos:TProdutoPedido[]) => {
+    // Função para adicionar os produtos ao pedido
+    const postProdutos = async (idPedido:number, produtos:TProdutoPedido[]) => {
     try {
         console.log(`/api/produtos-pedido?id_ped=${idPedido}`);
-        const produtosResponse = await fetch(`/api/pedido/${idPedido}/produtos`, {
+        const produtosResponse = await fetch(`/api/pedidos/${idPedido}/produtos`, {
             method: 'POST',
             headers: {
                 'access-token': 'YGZSXYRIZVgQbCcXZGUZPDNRXWUHTE',
@@ -169,13 +169,13 @@ const postProdutos = async (idPedido:number, produtos:TProdutoPedido[]) => {
         console.error('Erro ao cadastrar os produtos no pedido:', error);
         throw error;
     }
-};
-
-// Função para adicionar as parcelas ao pedido
-const postParcelas = async (idPedido:number, parcelas:TParcelas[]) => {
+    };
+    
+    // Função para adicionar as parcelas ao pedido
+    const postParcelas = async (idPedido:number, parcelas:TParcelas[]) => {
     try {
-        console.log(`/api/parcelas?id_ped=${idPedido}`);
-        const parcelaResponse = await fetch(`/api/parcelas?id_ped=${idPedido}`, {
+        console.log(`/api/pedidos/${idPedido}/parcelas`);
+        const parcelaResponse = await fetch(`/api/pedidos/${idPedido}/parcelas`, {
             method: 'POST',
             headers: {
                 'access-token': 'YGZSXYRIZVgQbCcXZGUZPDNRXWUHTE',
@@ -196,9 +196,9 @@ const postParcelas = async (idPedido:number, parcelas:TParcelas[]) => {
         console.error('Erro ao cadastrar as parcelas no pedido:', error);
         throw error;
     }
-};
-
-// Função principal para criar o pedido, cadastrar produtos e parcelas
+    };
+    
+    // Função principal para criar o pedido, cadastrar produtos e parcelas
 const criaNovoPedido = async () => {
     setLoading(true);
     setLoadingPedido(true);
@@ -217,7 +217,8 @@ const criaNovoPedido = async () => {
             icms_produto: produto.icms_produto ? parseFloat(produto.icms_produto).toFixed(2) : undefined,
             valor_custo_produto: produto.valor_custo_produto ? parseFloat(produto.valor_custo_produto).toFixed(4) : undefined,
             peso_produto: produto.peso_produto ? parseFloat(produto.peso_produto).toFixed(2) : undefined,
-            peso_liq_produto: produto.peso_liq_produto ? parseFloat(produto.peso_liq_produto).toFixed(2) : undefined
+            peso_liq_produto: produto.peso_liq_produto ? parseFloat(produto.peso_liq_produto).toFixed(2) : undefined,
+            valor_desconto: parseFloat('0').toFixed(4)
         }));
         console.log('produtos inside criaNovoPedido', produtos)
         await postProdutos(idPedido, produtos);
@@ -248,23 +249,28 @@ const criaNovoPedido = async () => {
 
 // Monta produtos do pedido
 const adicionarProduto = () => {
-        if (produto && quantidadeProdutos) {
-          const novoProduto: TProdutoPedido = {
-            id_produto: produto.id_produto,
-            desc_produto: produto.desc_produto,
-            qtde_produto: String(quantidadeProdutos),
-            valor_unit_produto: produto.valor_produto,
-            valor_custo_produto: produto.valor_custo_produto,
-            valor_total_produto: (parseFloat(produto.valor_produto) * parseFloat(quantidadeProdutos)).toFixed(2),
-            desconto_produto: descontoProdutos
-          };
-            setTotalProdutos(totalProdutos + (parseInt(quantidadeProdutos) * parseInt(produto.valor_produto)));
-            setTotalDescontoProdutos(totalDescontoProdutos + (descontoProdutos ? parseInt(descontoProdutos): 0));
-            setArrayProdutos((prevArray) => [...prevArray, novoProduto]);
-        }
-        setProduto(null); // Reset Picker
-        setQuantidadeProdutos('');
-        setDescontoProdutos('');
+    if (produto && quantidadeProdutos) {
+      const novoProduto: TProdutoPedido = {
+          id_produto: produto.id_produto,
+          desc_produto: produto.desc_produto,
+          qtde_produto: String(quantidadeProdutos),
+          valor_unit_produto: produto.valor_produto,
+          valor_custo_produto: produto.valor_custo_produto,
+          valor_total_produto: (parseFloat(produto.valor_produto) * parseFloat(quantidadeProdutos)).toFixed(2),
+          desconto_produto: descontoProdutos,
+          valor_desconto: ""
+      };
+        setTotalProdutos(totalProdutos + (parseInt(quantidadeProdutos) * parseInt(produto.valor_produto)));
+        setTotalDescontoProdutos(totalDescontoProdutos + (descontoProdutos ? parseInt(descontoProdutos): 0));
+        setArrayProdutos((prevArray) => [...prevArray, novoProduto]);
+    }
+    setProduto(null); // Reset Picker
+    setQuantidadeProdutos('');
+    setDescontoProdutos('');
+};
+
+const removerProduto = (index: number) => {
+    setArrayProdutos((prevArray) => prevArray.filter((_, i) => i !== index));
 };
       
     return (
@@ -348,14 +354,21 @@ const adicionarProduto = () => {
                                             <DataTable.Title numeric style={{ justifyContent: 'center', maxWidth: 50, paddingBottom: 0 }}>Total</DataTable.Title>
                                         </DataTable.Header>
                                         {arrayProdutos.map((item, index) => (
-                                            <DataTable.Row key={index}>
+                                            <><DataTable.Row key={index}>
                                                 <DataTable.Cell style={{ width: 90 }} textStyle={{ fontSize: 12 }}>{item.desc_produto}</DataTable.Cell>
                                                 <DataTable.Cell style={{ justifyContent: 'center', maxWidth: 30 }} textStyle={{ fontSize: 11 }}>{Number(item.qtde_produto)}</DataTable.Cell>
                                                 <DataTable.Cell style={{ justifyContent: 'center', maxWidth: 40 }} textStyle={{ fontSize: 11 }}>{`R$${Number(item.valor_unit_produto)}`}</DataTable.Cell>
                                                 <DataTable.Cell style={{ justifyContent: 'center', maxWidth: 35 }} textStyle={{ fontSize: 11 }}>{`R$${Number(item.valor_custo_produto)}`}</DataTable.Cell>
                                                 <DataTable.Cell style={{ justifyContent: 'center', maxWidth: 35 }} textStyle={{ fontSize: 11 }}>{`R$${Number(item.desconto_produto)}`}</DataTable.Cell>
                                                 <DataTable.Cell style={{ justifyContent: 'center', maxWidth: 50 }} textStyle={{ fontSize: 11 }}>{`R$${Number(item.valor_total_produto) - Number(item.desconto_produto)}`}</DataTable.Cell>
-                                            </DataTable.Row>
+                                             </DataTable.Row>
+                                             <IconButton
+                                                icon="delete"
+                                                iconColor="red"
+                                                size={30}
+                                                onPress={() => removerProduto(index)}
+                                                disabled />
+                                            </>
                                         ))}
                                     </DataTable>
                                 </View> : null}
@@ -421,7 +434,7 @@ const adicionarProduto = () => {
                                                 const numParcelas = parcelas ? parseInt(parcelas) : 1;
                                                 for (let i = 1; i <= numParcelas; i++) {
                                                     novoArrayParcelas.push({
-                                                        data_parcela: prazo ? String(prazo) : '',
+                                                        data_parcela: formatDate(prazo),
                                                         valor_parcela: String(totalProdutos / numParcelas),
                                                         forma_pagamento: formaPagamento ? formaPagamento : 'Dinheiro',
                                                         observacoes_parcela: observacao || '',

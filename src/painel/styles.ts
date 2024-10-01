@@ -110,14 +110,14 @@ export const styles = StyleSheet.create({
     marginBottom: 1
   },
   resumo: {
-    backgroundColor: '#DFDDDD',
+    backgroundColor: '#145B91',
     paddingHorizontal: 15,
     paddingVertical: 5,
     marginBottom: 1
   },
   resumoTexts: {
     fontWeight: '600',
-    color: '#145B91'
+    color: '#DFDDDD'
   },
   resumoView: {
     display: 'flex',
