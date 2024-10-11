@@ -38,7 +38,8 @@ export const styles = StyleSheet.create({
     borderTopRightRadius: 10,
     borderTopLeftRadius: 10,
     borderTopWidth:2,
-    borderTopColor: "#145B91"
+    borderTopColor: "#145B91",
+    
     
   },
   subFooter: {
@@ -85,8 +86,7 @@ export const styles = StyleSheet.create({
     height: 'auto',
     marginHorizontal: 5,
     marginTop: 6,
-    borderRadius: 4
-   
+    borderRadius: 4,
   },
   daysCount: {
     color: 'red',
@@ -102,15 +102,6 @@ export const styles = StyleSheet.create({
     alignItems: 'center'
   },
   viewCardPedido: {
-    backgroundColor: 'white',
-    display:"flex",
-    justifyContent: "space-between",
-    flexDirection: "row",
-    paddingHorizontal: 15,
-    paddingVertical: 5,
-    marginBottom: 1
-  },
-  viewCardPedidoDetalhado:{
     backgroundColor: 'white',
     display:"flex",
     justifyContent: "space-between",

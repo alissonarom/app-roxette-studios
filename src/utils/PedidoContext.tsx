@@ -13,8 +13,8 @@ export const PedidosProvider = ({ children }: { children: ReactNode }) => {
   const [pedidos, setPedidos] = useState<TPedido[]>([]);
 
   const headers = {
-    'access-token': 'YGZSXYRIZVgQbCcXZGUZPDNRXWUHTE',
-    'secret-access-token': 'EZp0ESVrg4rmZ0eWtPcdvNKNRTtSEC',
+    'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
+    'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
     'cache-control': 'no-cache',
     'content-type': 'application/json',
   };
@@ -29,7 +29,7 @@ export const PedidosProvider = ({ children }: { children: ReactNode }) => {
       const json = await response.json();
 
       const pedidosFiltrados = json.data.filter((pedido: any) => 
-        pedido.vendedor_pedido_id === vendedor && pedido.id_cliente === cliente
+        pedido.vendedor_pedido_id === vendedor && pedido.id_cliente === cliente && pedido.status_pedido === "Em Aberto" && pedido.lixeira === "Nao"
       );
 
       const pedidosComDetalhes = await Promise.all(

@@ -3,6 +3,7 @@ import { View } from "react-native";
 import { DatePickerModal } from 'react-native-paper-dates';
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { TextInput } from "react-native-paper";
+import {formatDate} from '../utils/index'
 
 interface DatePickerProps {
   date: Date;
@@ -25,7 +26,7 @@ export default function DatePicker({ date, setDate }: DatePickerProps) {
   );
 
     const formatDisplayDate = (date: Date) => {
-      return new Intl.DateTimeFormat('pt-BR').format(date); // "DD/MM/YYYY"
+      return formatDate(date); // "DD/MM/YYYY"
     };
 // TODO alterar idioma e cores tema do calendário
   return (

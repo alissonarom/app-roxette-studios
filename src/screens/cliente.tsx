@@ -1,11 +1,10 @@
 import React, {useEffect, useState} from 'react';
 import { View, Text, Image, StyleSheet, Dimensions, ActivityIndicator } from "react-native";
-import { ClienteScreenProps, RootStackParamList } from '../types';
+import { ClienteScreenProps, RootStackParamList, TClienteRegister } from '../types';
 import {Picker} from '@react-native-picker/picker';
 import { Button } from 'react-native-paper';
 import { TClienteResponse } from '../types';
 import { useRoute, RouteProp } from '@react-navigation/native';
-import { dataClientes } from '../Mocks/produtoMock';
 
 var {width} = Dimensions.get('window');
 
@@ -16,29 +15,96 @@ export default function Cliente({navigation}:ClienteScreenProps) {
   const route = useRoute<RouteProp<RootStackParamList, 'Cliente'>>();
   const { vendedor } = route.params || {};
 
+  function handleDespesasScreen() {
+    if(vendedor){
+      return navigation.navigate('Despesas', {vendedor: vendedor})
+    }
+  } 
+
+  function changeCliente() {
+    
+      return navigation.navigate('Vendedor')
+  } 
+
+  // const getClientes = async () => {
+  //   const headers = {
+  //     'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
+  //     'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
+  //     'cache-control': 'no-cache',
+  //     'content-type': 'application/json',
+  //   };
+  //   try {
+  //     const response = await fetch('/api/clientes', {
+  //       method: 'GET',
+  //       headers,
+  //     });
+  
+  //     const json = await response.json();
+  //     // Filtrar clientes que têm o vendedor_cliente_id igual ao id_vendedor
+  //   const clientesFiltrados = json.data.filter((cliente:TClienteRegister) => cliente.vendedor_cliente_id === vendedor.id_vendedor);
+    
+  //   setData(clientesFiltrados); // Definir o estado apenas com os clientes filtrados
+
+  //   } catch (error) {
+  //     console.error('Erro:', error);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  //   // setData(dataClientes);
+  //   setLoading(false);
+  // };
   const getClientes = async () => {
+    setLoading(true);
     const headers = {
-      'access-token': 'YGZSXYRIZVgQbCcXZGUZPDNRXWUHTE',
-      'secret-access-token': 'EZp0ESVrg4rmZ0eWtPcdvNKNRTtSEC',
+      'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
+      'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
       'cache-control': 'no-cache',
       'content-type': 'application/json',
     };
-    try {
-      const response = await fetch('/api/clientes', {
-        method: 'GET',
-        headers,
-      });
+    
+    let allClientes: TClienteResponse[] = [];
+    let offset = 0;
+    const limit = 50; // Definindo um limite de 50 clientes por página (ajustável conforme necessidade)
   
-      const json = await response.json();
-      setData(json.data);
+    try {
+      let hasMore = true;
+      
+      // Continuar enquanto houver mais páginas
+      while (hasMore) {
+        const response = await fetch(`/api/clientes?offset=${offset}&limit=${limit}`, {
+          method: 'GET',
+          headers,
+        });
+  
+        const json = await response.json();
+        
+        // Adicionar clientes da página atual ao array total
+        allClientes = [...allClientes, ...json.data];
+  
+        // Verificar se há mais clientes para buscar
+        const { total, offset: currentOffset, total_count } = json.paging;
+        offset = currentOffset + total_count;
+  
+        // Se o total de clientes obtidos for igual ao total disponível, parar a busca
+        hasMore = allClientes.length < total;
+      }
+  
+      // Filtrar clientes que têm o vendedor_cliente_id igual ao id_vendedor
+      let clientesFiltrados = allClientes.filter((cliente) => cliente.vendedor_cliente_id === vendedor.id_vendedor);
+
+      // Ordenar clientes filtrados em ordem alfabética (por nome do cliente)
+      clientesFiltrados = clientesFiltrados.sort((a, b) =>
+      a.razao_cliente.localeCompare(b.razao_cliente)
+    );
+      
+      setData(clientesFiltrados); // Definir o estado apenas com os clientes filtrados
     } catch (error) {
       console.error('Erro:', error);
     } finally {
       setLoading(false);
     }
-    // setData(dataClientes);
-    setLoading(false);
   };
+  
 
   function handleSignIn() {
     if(client){
@@ -70,13 +136,14 @@ export default function Cliente({navigation}:ClienteScreenProps) {
             const selectedItem = data[itemIndex - 1];
             setClient(selectedItem || null);
         }}>
-            <Picker.Item label='Clientes' value='Clientes' />
+            <Picker.Item label='Clientes' value='Clientes' style={{fontSize:12}} />
           {data.map((item) => {
             return <Picker.Item label={item.razao_cliente} value={item.razao_cliente} key={item.id_cliente} />
           })}
         </Picker>
         <Button style={styles.button} buttonColor="#1F88D9" mode="contained" onPress={handleSignIn}>Avançar</Button>
-        <Button style={styles.button} textColor="white" mode="text" onPress={() => console.log('Pressed')}>Cadastrar</Button>
+        <Button style={styles.button} textColor="white" mode="outlined" onPress={handleDespesasScreen}>ou Lançe uma despesa</Button>
+        <Button style={styles.button} textColor="white" mode="outlined" onPress={changeCliente}>Trocar de vendedor</Button>
         </>)}
       </View>
     );

@@ -4,6 +4,7 @@ import { VendedorScreenPorps } from '../types';
 import {Picker} from '@react-native-picker/picker';
 import { Button } from 'react-native-paper';
 import { TVendedorResponse } from '../types';
+import { dataVendedor } from '../Mocks/produtoMock';
 // import { dataVendedor } from '../Mocks/produtoMock';
 
 var {width} = Dimensions.get('window');
@@ -15,8 +16,8 @@ export default function Vendedor({route, navigation}:VendedorScreenPorps) {
 
   const getVendedores = async () => {
     const headers = {
-      'access-token': 'YGZSXYRIZVgQbCcXZGUZPDNRXWUHTE',
-      'secret-access-token': 'EZp0ESVrg4rmZ0eWtPcdvNKNRTtSEC',
+      'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
+      'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
       'cache-control': 'no-cache',
       'content-type': 'application/json',
     };
@@ -39,7 +40,7 @@ export default function Vendedor({route, navigation}:VendedorScreenPorps) {
 
   function handleSignIn() {
     if(vendedor){
-      return navigation.navigate('Cliente', { vendedor: vendedor})
+      return navigation.navigate('Home', { vendedor: vendedor})
     }
   }
 

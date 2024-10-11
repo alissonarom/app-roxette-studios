@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { View, Text, ScrollView } from "react-native";
-import { NovoPedidoScreenPorps } from "../../types/index";
+import { Liquidado, NovoPedidoScreenPorps, TBancoCadastro, TCategoFinanceira, TContaReceber } from "../../types/index";
 import { Button, Card, DataTable, IconButton, TextInput, Snackbar, ActivityIndicator  } from 'react-native-paper';
 import { styles } from "../styles";
 import { SafeAreaView } from "react-native";
@@ -17,11 +17,10 @@ import {
     Estoque_pedido,
     Conta_lancada,
 } from "../../types/index";
-import {dataProdutoMock} from '../../Mocks/produtoMock'
 import { PedidosContext } from '../../utils/PedidoContext';
 import { useRoute, RouteProp } from '@react-navigation/native';
 // utils
-import { truncateText, dataFormaPagamento, formatDate } from "../../utils";
+import { truncateText, dataFormaPagamento, formatDate, formatarValor } from "../../utils";
 
 const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
     // produto
@@ -30,15 +29,15 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
     const [arrayProdutos, setArrayProdutos] = useState<TProdutoPedido[]>([]);
     const [quantidadeProdutos, setQuantidadeProdutos] = useState<string>();
     const [descontoProdutos, setDescontoProdutos] = useState<string>('');
-    const [totalDescontoProdutos, setTotalDescontoProdutos] = useState<number>(0);
-    const [totalProdutos, setTotalProdutos] = useState(0)
+    const [totalDescontoProdutos, setTotalDescontoProdutos] = useState(0);
+    const [totalProdutos, setTotalProdutos] = useState('')
     const [dataProdutos, setDataProdutos] = useState<TProduto[]>([]);
     // route params
     const route = useRoute<RouteProp<RootStackParamList, 'Pedido'>>();
     const { cliente, vendedor } = route.params;  // Acessa o parâmetro 'cliente'
     //pagamento
     let novoArrayParcelas: TParcelas[] = []
-    const [formaPagamento, setFormaPagamento] = useState(null);
+    const [formaPagamento, setFormaPagamento] = useState('');
     const [parcelas, setParcelas] = useState('');
     const [pagamentoParcelado, setPagamentoParcelado] = useState<TParcelas[]>([]);
     //obs
@@ -49,16 +48,96 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
     const [isLoadingPedido, setLoadingPedido] = useState(false);
     const [visible, setVisible] = useState(false);
     const pedidosContext = useContext(PedidosContext);
+    //conta bancária
+    const [contaBancaria, setDataContaBancaria] = useState<TBancoCadastro[]>([]);
+    //categorias financeiras
+    const [categoFinanceiras, setCategoFinanceiras] = useState<TCategoFinanceira[]>([]);
 
     useEffect(() => {
         getProdutos();
+        getContaBancaria();
+        getCategoFinanceiras();
     }, []);
+
+    useEffect(() => {
+        atualizarParcelas();  // Chama a função de atualização de parcelas
+      }, [arrayProdutos, parcelas, formaPagamento]);
+
+    const atualizarParcelas = () => {
+        if (!pagamentoParcelado.length && arrayProdutos.length > 0 && (parcelas || formaPagamento)) {
+          const desconto = totalDescontoProdutos;
+          const numParcelas = parcelas ? parseInt(parcelas) : 1;
+          const novoArrayParcelas = [];
+      
+          for (let i = 1; i <= numParcelas; i++) {
+            novoArrayParcelas.push({
+              data_parcela: formatDate(prazo),
+              valor_parcela: `${(parseFloat(totalProdutos) - desconto) / numParcelas}`,
+              forma_pagamento: formaPagamento,
+              observacoes_parcela: observacao || '',
+              conta_liquidada: 0
+            });
+          }
+      
+          setPagamentoParcelado(novoArrayParcelas);
+        } else if (pagamentoParcelado.length) {
+          setPagamentoParcelado([]);
+          setParcelas('');
+        }
+      };
+
+    const getContaBancaria = async () => {
+        setLoading(true);
+        const headers = {
+          'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
+          'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
+          'cache-control': 'no-cache',
+          'content-type': 'application/json',
+        };
+        try {
+          const response = await fetch('/api/contas-bancarias', {
+            method: 'GET',
+            headers,
+          });
+      
+          const json = await response.json();
+          setDataContaBancaria(json.data);
+        } catch (error) {
+          console.error('Erro:', error);
+        } finally {
+          setLoading(false);
+        }
+        // setDataProdutos(dataProdutoMock);
+    };
+
+    const getCategoFinanceiras = async () => {
+        setLoading(true);
+        const headers = {
+          'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
+          'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
+          'cache-control': 'no-cache',
+          'content-type': 'application/json',
+        };
+        try {
+          const response = await fetch('/api/categorias-financeiras', {
+            method: 'GET',
+            headers,
+          });
+      
+          const json = await response.json();
+          setCategoFinanceiras(json.data);
+        } catch (error) {
+          console.error('Erro:', error);
+        } finally {
+          setLoading(false);
+        }
+    };
 
     //clear function
     const clearPainel = () => {
         setArrayProdutos([]);
         setTotalDescontoProdutos(0)
-        setFormaPagamento(null)
+        setFormaPagamento('')
         setParcelas('')
         setPagamentoParcelado([])
         onChangeobservacao('')
@@ -66,15 +145,15 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
         setLoadingPedido(false);
         setLoading(false);
         setVisible(true);
-        setTotalProdutos(0)
+        setTotalProdutos('')
     }
 
-    //GET--------------
+//GET--------------
     const getProdutos = async () => {
         setLoading(true);
         const headers = {
-          'access-token': 'YGZSXYRIZVgQbCcXZGUZPDNRXWUHTE',
-          'secret-access-token': 'EZp0ESVrg4rmZ0eWtPcdvNKNRTtSEC',
+          'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
+          'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
           'cache-control': 'no-cache',
           'content-type': 'application/json',
         };
@@ -95,35 +174,36 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
     };
 
     // Monta pedido
-    const novoPedido = (): TNovoPedido => {
+    const novoPedido = () => {
             return {
               id_cliente: cliente.id_cliente, // ID do cliente 
               nome_cliente: cliente.razao_cliente, // Nome do cliente
               vendedor_pedido: vendedor.razao_vendedor, // Nome do vendedor
               vendedor_pedido_id: vendedor.id_vendedor, // ID do vendedor
-              desconto_pedido: String(totalDescontoProdutos), // Valor total do desconto
+              // desconto_pedido: String(totalDescontoProdutos), // Valor total do desconto
               peso_total_nota: '0', // Peso total do pedido
               peso_total_nota_liq: '0', // Peso líquido do pedido
               data_pedido: new Date().toISOString().split('T')[0], // Data do pedido
               prazo_entrega: new Date(prazo).toISOString().split('T')[0], // Prazo de entrega (Dias)
               referencia_pedido: null, // Referência do pedido
               obs_pedido: observacao, // Observações do pedido
-              obs_interno_pedido: null, // Observação interna do pedido
+              obs_interno_pedido: '', // Observação interna do pedido
               status_pedido: Status_pedido["Em Aberto"], // Status do pedido
               estoque_pedido: Estoque_pedido.Não, // Estoque lançado (Sim/Não)
-              contas_pedido: Conta_lancada.Não, // Contas lançadas (Sim/Não)
+              contas_pedido: Conta_lancada.Sim, // Contas lançadas (Sim/Não)
               valor_total_produtos: totalProdutos
             };
     };
 
+//POST--------------
     // Função para criar o pedido
     const postPedido = async (novoPedido:TNovoPedido) => {
     try {
         const pedidoResponse = await fetch('/api/pedidos', {
             method: 'POST',
             headers: {
-                'access-token': 'YGZSXYRIZVgQbCcXZGUZPDNRXWUHTE',
-                'secret-access-token': 'EZp0ESVrg4rmZ0eWtPcdvNKNRTtSEC',
+                'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
+                'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
                 'cache-control': 'no-cache',
                 'content-type': 'application/json',
             },
@@ -142,69 +222,138 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
         throw error;
     }
     };
-
     // Função para adicionar os produtos ao pedido
     const postProdutos = async (idPedido:number, produtos:TProdutoPedido[]) => {
-    try {
-        console.log(`/api/produtos-pedido?id_ped=${idPedido}`);
-        const produtosResponse = await fetch(`/api/pedidos/${idPedido}/produtos`, {
-            method: 'POST',
-            headers: {
-                'access-token': 'YGZSXYRIZVgQbCcXZGUZPDNRXWUHTE',
-                'secret-access-token': 'EZp0ESVrg4rmZ0eWtPcdvNKNRTtSEC',
-                'cache-control': 'no-cache',
-                'content-type': 'application/json',
-            },
-            body: JSON.stringify(produtos),
-        });
-        if (!produtosResponse.ok) {
-            console.error('Erro: gravar produtos no pedido');
-            throw new Error('Erro ao cadastrar os produtos no pedido');
+        try {
+            console.log(`/api/produtos-pedido?id_ped=${idPedido}`);
+            const produtosResponse = await fetch(`/api/pedidos/${idPedido}/produtos`, {
+                method: 'POST',
+                headers: {
+                    'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
+                    'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
+                    'cache-control': 'no-cache',
+                    'content-type': 'application/json',
+                },
+                body: JSON.stringify(produtos),
+            });
+            if (!produtosResponse.ok) {
+                console.error('Erro: gravar produtos no pedido');
+                throw new Error('Erro ao cadastrar os produtos no pedido');
+            }
+            const produtosData = await produtosResponse.json(); // Espera a resolução da Promise
+            console.log('Produtos cadastrados com sucesso no pedido:', idPedido);
+            console.log('produtosResponse:', produtosData); // Agora `produtosData` contém o objeto resolvido
+            
+        } catch (error) {
+            console.error('Erro ao cadastrar os produtos no pedido:', error);
+            throw error;
         }
-        const produtosData = await produtosResponse.json(); // Espera a resolução da Promise
-        console.log('Produtos cadastrados com sucesso no pedido:', idPedido);
-        console.log('produtosResponse:', produtosData); // Agora `produtosData` contém o objeto resolvido
-        
-    } catch (error) {
-        console.error('Erro ao cadastrar os produtos no pedido:', error);
-        throw error;
-    }
     };
-    
     // Função para adicionar as parcelas ao pedido
     const postParcelas = async (idPedido:number, parcelas:TParcelas[]) => {
-    try {
-        console.log(`/api/pedidos/${idPedido}/parcelas`);
-        const parcelaResponse = await fetch(`/api/pedidos/${idPedido}/parcelas`, {
-            method: 'POST',
-            headers: {
-                'access-token': 'YGZSXYRIZVgQbCcXZGUZPDNRXWUHTE',
-                'secret-access-token': 'EZp0ESVrg4rmZ0eWtPcdvNKNRTtSEC',
-                'cache-control': 'no-cache',
-                'content-type': 'application/json',
-            },
-            body: JSON.stringify(parcelas),
-        });
-        if (!parcelaResponse.ok) {
-            console.error('Erro: cadastrar parcelas no pedido');
-            throw new Error('Erro ao cadastrar as parcelas no pedido');
+        try {
+            const parcelaResponse = await fetch(`/api/pedidos/${idPedido}/parcelas`, {
+                method: 'POST',
+                headers: {
+                    'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
+                    'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
+                    'cache-control': 'no-cache',
+                    'content-type': 'application/json',
+                },
+                body: JSON.stringify(parcelas),
+            });
+            if (!parcelaResponse.ok) {
+                throw new Error('Erro ao cadastrar as parcelas no pedido');
+            }
+        } catch (error) {
+            console.error('Erro ao cadastrar as parcelas no pedido:', error);
+            throw error;
         }
-        const parcelasData = await parcelaResponse.json(); // Espera a resolução da Promise
-        console.log('Parcelas cadastradas com sucesso no pedido:', idPedido);
-        console.log('parcelaResponse:', parcelasData); // Agora `produtosData` contém o objeto resolvido
-    } catch (error) {
-        console.error('Erro ao cadastrar as parcelas no pedido:', error);
-        throw error;
-    }
     };
+    // Monta produtos do pedido
+    const adicionarProduto = () => {
+        if (produto && quantidadeProdutos) {
+          const novoProduto: TProdutoPedido = {
+              id_produto: produto.id_produto,
+              desc_produto: produto.desc_produto,
+              qtde_produto: quantidadeProdutos,
+              valor_unit_produto: produto.valor_produto,
+              valor_custo_produto: produto.valor_custo_produto,
+              valor_total_produto: (parseInt(produto.valor_produto) * parseInt(quantidadeProdutos)).toFixed(2),
+              desconto_produto: descontoProdutos,
+              valor_desconto: ""
+          };
+            setTotalProdutos(String(parseInt(totalProdutos) + (parseInt(quantidadeProdutos) * parseInt(produto.valor_produto))));
+            setTotalDescontoProdutos(totalDescontoProdutos + (descontoProdutos ? parseFloat(descontoProdutos): 0));
+            setArrayProdutos((prevArray) => [...prevArray, novoProduto]);
+        }
+        setProduto(null); // Reset Picker
+        setQuantidadeProdutos('');
+        setDescontoProdutos('');
+    };
+    //formata Nome vendedor
+    function formatarNomeCliente(nomeCliente:string) {
+        const nomes = nomeCliente.split(' ');
+        return nomes.length > 1 ? `${nomes[0]} ${nomes[nomes.length - 1]}` : nomes[0];
+      }
+
+    const criarContaReceber:any = async (idPedido:string) => {
+        setLoading(true);
+        const despesa: TContaReceber = {
+            nome_conta : `Venda de ${formatarNomeCliente(vendedor.razao_vendedor)}`,
+            id_categoria : categoFinanceiras[0].id_categoria,
+            categoria_rec :  categoFinanceiras[0].desc_categoria,
+            id_banco : contaBancaria[0].id_banco_cad,
+            id_cliente : cliente.id_cliente,
+            nome_cliente : cliente.razao_cliente,
+            vencimento_rec : new Date(prazo).toISOString().split('T')[0],
+            valor_rec : (parseFloat(totalProdutos)-totalDescontoProdutos).toFixed(2),
+            valor_pago : "00.00",
+            data_emissao : new Date().toISOString().split('T')[0],
+            n_documento_rec : idPedido,
+            observacoes_rec : "",
+            id_centro_custos : 0,
+            centro_custos_rec : "",
+            liquidado_rec : Liquidado.Não,
+            data_pagamento : null,
+            obs_pagamento : null,
+            forma_pagamento : formaPagamento,
+            tipo_conta : '',
+            valor_juros : "00.00",
+            valor_desconto : "00.00",
+            valor_acrescimo : String(totalDescontoProdutos)
+        };
+        console.log('despesa no criarContaReceber', despesa)
+        try {
+            const ContaReceberResponse = await fetch(`/api/contas-receber`, {
+                method: 'POST',
+                headers: {
+                    'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
+                    'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
+                    'cache-control': 'no-cache',
+                    'content-type': 'application/json',
+                },
+                body: JSON.stringify(despesa),
+            });
+            if (!ContaReceberResponse.ok) {
+                throw new Error('Erro ao cadastrar Conta Receber');
+            }
+            const ContaReceber = await ContaReceberResponse.json();
+            console.log('ContaReceber criado com sucesso:', ContaReceber);
+            return ContaReceber.data[0].id_conta_rec; // Retorna o ID da receita criada
     
+        } catch (error) {
+            console.error('Erro ao criar contas a receber:', error);
+        }
+    };
     // Função principal para criar o pedido, cadastrar produtos e parcelas
-const criaNovoPedido = async () => {
+    const criaNovoPedido = async () => {
     setLoading(true);
     setLoadingPedido(true);
     try {
         // Cria o pedido
         const idPedido = await postPedido(novoPedido());
+        await criarContaReceber(String(idPedido));
 
         // Cadastra os produtos no pedido
         const produtos = arrayProdutos.map((produto) => ({
@@ -220,7 +369,6 @@ const criaNovoPedido = async () => {
             peso_liq_produto: produto.peso_liq_produto ? parseFloat(produto.peso_liq_produto).toFixed(2) : undefined,
             valor_desconto: parseFloat('0').toFixed(4)
         }));
-        console.log('produtos inside criaNovoPedido', produtos)
         await postProdutos(idPedido, produtos);
 
         // Cadastra as parcelas no pedido
@@ -245,33 +393,40 @@ const criaNovoPedido = async () => {
         setLoadingPedido(false);
         clearPainel();
     }
-};
+    };
 
-// Monta produtos do pedido
-const adicionarProduto = () => {
-    if (produto && quantidadeProdutos) {
-      const novoProduto: TProdutoPedido = {
-          id_produto: produto.id_produto,
-          desc_produto: produto.desc_produto,
-          qtde_produto: String(quantidadeProdutos),
-          valor_unit_produto: produto.valor_produto,
-          valor_custo_produto: produto.valor_custo_produto,
-          valor_total_produto: (parseFloat(produto.valor_produto) * parseFloat(quantidadeProdutos)).toFixed(2),
-          desconto_produto: descontoProdutos,
-          valor_desconto: ""
-      };
-        setTotalProdutos(totalProdutos + (parseInt(quantidadeProdutos) * parseInt(produto.valor_produto)));
-        setTotalDescontoProdutos(totalDescontoProdutos + (descontoProdutos ? parseInt(descontoProdutos): 0));
-        setArrayProdutos((prevArray) => [...prevArray, novoProduto]);
-    }
-    setProduto(null); // Reset Picker
-    setQuantidadeProdutos('');
-    setDescontoProdutos('');
-};
+    const removerProduto = (index: number) => {
+    setArrayProdutos((prevArray) => {
+        // Obter o produto que será removido
+        const produtoRemovido = prevArray[index];
+        
+        // Atualizar o total de produtos removendo o valor do produto removido
+        const valorRemovido = parseFloat(produtoRemovido.valor_unit_produto) * parseInt(produtoRemovido.qtde_produto);
+        setTotalProdutos((parseFloat(totalProdutos) - valorRemovido).toFixed(2));
+        
+        // Atualizar o total de desconto removendo o desconto do produto removido
+        const descontoRemovido = produtoRemovido.desconto_produto ? parseFloat(produtoRemovido.desconto_produto) : 0;
+        setTotalDescontoProdutos(totalDescontoProdutos - descontoRemovido);
 
-const removerProduto = (index: number) => {
-    setArrayProdutos((prevArray) => prevArray.filter((_, i) => i !== index));
-};
+        // Retornar o novo array de produtos sem o produto removido
+        return prevArray.filter((_, i) => i !== index);
+    });
+    };
+
+    const handleChangeDesconto = (texto: any) => {
+        const valorFormatado = formatarValor(texto);
+        setDescontoProdutos(valorFormatado)
+    };
+
+    const handleChangeQuantidade = (texto: any) => {
+        // const valorFormatado = formatarValor(texto);
+        setQuantidadeProdutos(texto)
+    };
+
+    const handleChangeParcelas = (texto: any) => {
+        // const valorFormatado = formatarValor(texto);
+        setParcelas(texto)
+    };
       
     return (
         <SafeAreaView style={styles.container}>
@@ -296,13 +451,13 @@ const removerProduto = (index: number) => {
             ) : (
                 <ScrollView style={styles.scrollView}>
                     {/* Produtos */}
-                    {/* TODO criar lógica de remover produtos */}
                     <Card mode="elevated" style={styles.cardPanel}>
                             <View style={[styles.cardPanelContent, { justifyContent: 'space-between' }]}>
                                 <Text style={styles.h3}>Produtos  </Text>
                                 <Text style={{ fontSize: 10, alignSelf: 'flex-start', color: arrayProdutos.length ? 'green' : 'red' }}>obrigatório</Text>
                             </View>
                             <View style={styles.cardPanelContent}>
+                                <View style={{width:100, flexGrow: 1}}>
                                 <Picker
                                     dropdownIconColor="#9E9E9E"
                                     style={styles.selectPicker}
@@ -311,19 +466,21 @@ const removerProduto = (index: number) => {
                                         const selectedItem = dataProdutos[itemIndex - 1];
                                         setProduto(selectedItem || null);
                                     } }>
-                                    <Picker.Item label='Selecione um produto' value='Selecione um produto' />
+                                    <Picker.Item style={{fontSize:14}} label='Selecione um produto' value='Selecione um produto' />
                                     {dataProdutos.map((item) => {
-                                        return <Picker.Item label={truncateText(item.desc_produto, 17)} value={item.desc_produto} key={item.id_produto} />;
+                                        return <Picker.Item style={{fontSize:14}} label={item.desc_produto} value={item.desc_produto} key={item.id_produto}/>;
                                     })}
                                 </Picker>
+                                </View>
                                 <TextInput
                                     outlineColor='#145B91'
                                     activeOutlineColor='#145B91'
                                     style={{ marginHorizontal: 2, width: 70, backgroundColor: 'white', fontSize: 14, fontFamily: 'Roboto' }}
                                     value={descontoProdutos}
-                                    onChangeText={setDescontoProdutos}
+                                    onChangeText={handleChangeDesconto}
                                     mode="outlined"
-                                    label="Desconto" />
+                                    label="Desconto"
+                                    keyboardType="numeric" />
                                 <TextInput
                                     outlineColor='#145B91'
                                     activeOutlineColor='#145B91'
@@ -331,12 +488,12 @@ const removerProduto = (index: number) => {
                                     label="Qtde"
                                     style={{ marginHorizontal: 5, width: 60, backgroundColor: 'white', fontSize: 14, fontFamily: 'Roboto' }}
                                     value={quantidadeProdutos}
-                                    onChangeText={setQuantidadeProdutos} />
+                                    onChangeText={handleChangeQuantidade} />
                                 <IconButton
                                     style={{ width: 25 }}
                                     icon="plus-circle"
                                     iconColor='green'
-                                    size={30}
+                                    size={25}
                                     onPress={() => adicionarProduto()}
                                     disabled={(produto && quantidadeProdutos) ? false : true} />
                             </View>
@@ -346,38 +503,37 @@ const removerProduto = (index: number) => {
                                 <View style={styles.viewCardPedido}>
                                     <DataTable>
                                         <DataTable.Header>
-                                            <DataTable.Title style={{ paddingBottom: 0 }}>Produtos</DataTable.Title>
-                                            <DataTable.Title numeric style={{ justifyContent: 'center', maxWidth: 30, paddingBottom: 0 }}>Qtd</DataTable.Title>
-                                            <DataTable.Title numeric style={{ justifyContent: 'center', maxWidth: 40, paddingBottom: 0 }}>V. unit.</DataTable.Title>
-                                            <DataTable.Title style={{ justifyContent: 'center', maxWidth: 35, paddingBottom: 0 }}>Custo</DataTable.Title>
-                                            <DataTable.Title numeric style={{ justifyContent: 'center', maxWidth: 35, paddingBottom: 0 }}>Desc.</DataTable.Title>
-                                            <DataTable.Title numeric style={{ justifyContent: 'center', maxWidth: 50, paddingBottom: 0 }}>Total</DataTable.Title>
+                                            <DataTable.Title style={{ paddingBottom: 0, maxWidth:130 }}>Produtos</DataTable.Title>
+                                            <DataTable.Title numeric style={{ justifyContent: 'center', maxWidth: 30 }}>Qtd</DataTable.Title>
+                                            <DataTable.Title numeric style={{ justifyContent: 'center', maxWidth: 40 }}>V. unit.</DataTable.Title>
+                                            <DataTable.Title numeric style={{ justifyContent: 'center', maxWidth: 35 }}>Desc.</DataTable.Title>
+                                            <DataTable.Title numeric style={{ justifyContent: 'center', maxWidth: 50 }}>Total</DataTable.Title>
                                         </DataTable.Header>
                                         {arrayProdutos.map((item, index) => (
-                                            <><DataTable.Row key={index}>
-                                                <DataTable.Cell style={{ width: 90 }} textStyle={{ fontSize: 12 }}>{item.desc_produto}</DataTable.Cell>
-                                                <DataTable.Cell style={{ justifyContent: 'center', maxWidth: 30 }} textStyle={{ fontSize: 11 }}>{Number(item.qtde_produto)}</DataTable.Cell>
-                                                <DataTable.Cell style={{ justifyContent: 'center', maxWidth: 40 }} textStyle={{ fontSize: 11 }}>{`R$${Number(item.valor_unit_produto)}`}</DataTable.Cell>
-                                                <DataTable.Cell style={{ justifyContent: 'center', maxWidth: 35 }} textStyle={{ fontSize: 11 }}>{`R$${Number(item.valor_custo_produto)}`}</DataTable.Cell>
-                                                <DataTable.Cell style={{ justifyContent: 'center', maxWidth: 35 }} textStyle={{ fontSize: 11 }}>{`R$${Number(item.desconto_produto)}`}</DataTable.Cell>
-                                                <DataTable.Cell style={{ justifyContent: 'center', maxWidth: 50 }} textStyle={{ fontSize: 11 }}>{`R$${Number(item.valor_total_produto) - Number(item.desconto_produto)}`}</DataTable.Cell>
-                                             </DataTable.Row>
-                                             <IconButton
-                                                icon="delete"
-                                                iconColor="red"
-                                                size={30}
-                                                onPress={() => removerProduto(index)}
-                                                disabled />
-                                            </>
+                                            <View style={{ display: "flex", justifyContent: "space-between", flexDirection: "row", }}>
+                                                <DataTable.Row key={index} style={{paddingHorizontal: 0, flexGrow: 1}}>
+                                                    <DataTable.Cell style={{ width: 90 }} textStyle={{ fontSize: 11 }}>{item.desc_produto}</DataTable.Cell>
+                                                    <DataTable.Cell style={{ justifyContent: 'center', maxWidth: 30 }} textStyle={{ fontSize: 11 }}>{Number(item.qtde_produto)}</DataTable.Cell>
+                                                    <DataTable.Cell style={{ justifyContent: 'center', maxWidth: 40 }} textStyle={{ fontSize: 11 }}>{`R$${Number(item.valor_unit_produto)}`}</DataTable.Cell>
+                                                    <DataTable.Cell style={{ justifyContent: 'center', maxWidth: 35 }} textStyle={{ fontSize: 11 }}>{`R$${Number(item.desconto_produto)}`}</DataTable.Cell>
+                                                    <DataTable.Cell style={{ justifyContent: 'center', maxWidth: 50 }} textStyle={{ fontSize: 11 }}>{`R$${Number(item.valor_total_produto) - Number(item.desconto_produto)}`}</DataTable.Cell>
+                                                </DataTable.Row>
+                                                <IconButton
+                                                    icon="delete"
+                                                    iconColor="red"
+                                                    size={25}
+                                                    onPress={() => removerProduto(index)}
+                                                    style={{marginLeft: 0, marginRight: 0}}
+                                                />
+                                            </View>
                                         ))}
                                     </DataTable>
                                 </View> : null}
                     </Card>
                     {/* Prazo */}
-                    {/* TODO criar máscara para datas */}
                     <Card mode="elevated" style={styles.cardPanel}>
-                            <Text style={styles.h3}>Prazos</Text>
-                            <View style={styles.cardPanelContent}>
+                        <Text style={styles.h3}>Prazos</Text>
+                        <View style={styles.cardPanelContent}>
                                 <View style={styles.cardInputs}>
                                     <Text>Data do pedido</Text>
                                     <TextInput
@@ -392,13 +548,13 @@ const removerProduto = (index: number) => {
                                     <Text>Prazo de entrega</Text>
                                     {<DatePicker date={prazo} setDate={setPrazo} />}
                                 </View>
-                            </View>
+                        </View>
                     </Card>
                     {/* Pagamento */}
                     <Card mode="elevated" style={styles.cardPanel}>
                             <View style={[styles.cardPanelContent, { justifyContent: 'space-between' }]}>
                                 <Text style={styles.h3}>Forma de pagamento ou nº parcelas </Text>
-                                <Text style={{ fontSize: 10, alignSelf: 'flex-start', color: 'red' }}>obrigatório</Text>
+                                <Text style={{ fontSize: 10, alignSelf: 'flex-start', color: formaPagamento && parcelas ? 'green' : 'red' }}>obrigatório</Text>
                             </View>
                             <View style={styles.cardPanelContent}>
                                 <Picker
@@ -421,31 +577,17 @@ const removerProduto = (index: number) => {
                                     label="Nº Parcelas"
                                     style={{ marginHorizontal: 5, width: 110, backgroundColor: 'white', fontSize: 14, fontFamily: 'Roboto' }}
                                     value={parcelas}
-                                    onChangeText={setParcelas}
+                                    onChangeText={handleChangeParcelas}
                                     disabled={!arrayProdutos.length} />
                                 <IconButton
                                     style={{ width: 25 }}
                                     icon={(pagamentoParcelado.length > 0) ? "delete" : "plus-circle"}
                                     iconColor={(pagamentoParcelado.length > 0) ? "red" : "green"}
-                                    size={30}
+                                    size={25}
                                     onPress={() => {
-                                        if (!pagamentoParcelado.length) {
-                                            if (arrayProdutos.length > 0 && (parcelas || formaPagamento)) {
-                                                const numParcelas = parcelas ? parseInt(parcelas) : 1;
-                                                for (let i = 1; i <= numParcelas; i++) {
-                                                    novoArrayParcelas.push({
-                                                        data_parcela: formatDate(prazo),
-                                                        valor_parcela: String(totalProdutos / numParcelas),
-                                                        forma_pagamento: formaPagamento ? formaPagamento : 'Dinheiro',
-                                                        observacoes_parcela: observacao || '',
-                                                        conta_liquidada: 0
-                                                    });
-                                                }
-                                            }
-                                            setPagamentoParcelado(novoArrayParcelas);
-                                        } else { setPagamentoParcelado([]), setParcelas(''); }
-                                    } }
-                                    disabled={!parcelas && !formaPagamento} />
+                                        atualizarParcelas();  // Chama a mesma função ao pressionar o botão
+                                      }}
+                                    disabled={!(parcelas && formaPagamento)} />
                             </View>
                             {pagamentoParcelado.length ?
                                 <DataTable>
@@ -453,14 +595,14 @@ const removerProduto = (index: number) => {
                                         <DataTable.Title style={[styles.tableTitlePagamento, { maxWidth: 25 }]}>Nº</DataTable.Title>
                                         <DataTable.Title numeric style={styles.tableTitlePagamento}>Forma Pgto</DataTable.Title>
                                         <DataTable.Title numeric style={styles.tableTitlePagamento}>Data</DataTable.Title>
-                                        <DataTable.Title style={styles.tableTitlePagamento}>Valor</DataTable.Title>
+                                        <DataTable.Title numeric style={styles.tableTitlePagamento}>Valor</DataTable.Title>
                                     </DataTable.Header>
                                     {pagamentoParcelado.map((parcelas, index) => (
                                         <DataTable.Row key={index}>
                                             <DataTable.Cell style={[styles.tableTitlePagamento, { maxWidth: 25 }]} textStyle={{ fontSize: 13 }}>{index+1}</DataTable.Cell>
                                             <DataTable.Cell style={styles.tableTitlePagamento} textStyle={{ fontSize: 13 }}>{parcelas.forma_pagamento}</DataTable.Cell>
-                                            <DataTable.Cell style={styles.tableTitlePagamento} textStyle={{ fontSize: 13 }}>{parcelas.data_parcela}</DataTable.Cell>
-                                            <DataTable.Cell style={styles.tableTitlePagamento} textStyle={{ fontSize: 13 }}>{`R$ ${Number(parcelas.valor_parcela)}`}</DataTable.Cell>
+                                            <DataTable.Cell style={styles.tableTitlePagamento} textStyle={{ fontSize: 13 }}>{(parcelas.data_parcela)}</DataTable.Cell>
+                                            <DataTable.Cell style={styles.tableTitlePagamento} textStyle={{ fontSize: 13 }}>{`R$ ${parcelas.valor_parcela}`}</DataTable.Cell>
                                         </DataTable.Row>
                                     ))}
                                 </DataTable> : null}
@@ -486,7 +628,7 @@ const removerProduto = (index: number) => {
                 <View style={styles.footer}>
                     <View style={styles.subFooter}>
                                 <Text style={styles.textFooter}>Total em Produto</Text>
-                                <Text style={styles.textFooter}>R$ {totalProdutos}</Text>
+                                <Text style={styles.textFooter}>R$ {totalProdutos ? totalProdutos : 0}</Text>
                     </View>
                     <View style={styles.subFooter}>
                                 <Text style={styles.textFooter}>Desconto</Text>
@@ -494,7 +636,7 @@ const removerProduto = (index: number) => {
                     </View>
                     <View style={[styles.subFooter, { marginBottom: 10 }]}>
                                 <Text style={[styles.textFooter, { fontSize: 21 }]}>Total</Text>
-                                <Text style={[styles.textFooter, { fontSize: 21 }]}>R$ {totalProdutos - totalDescontoProdutos}</Text>
+                                <Text style={[styles.textFooter, { fontSize: 21 }]}>R$ {totalProdutos ? (parseInt(totalProdutos) - totalDescontoProdutos) : 0}</Text>
                     </View>
                     <Button
                         style={{ marginHorizontal: 60 }}

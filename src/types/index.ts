@@ -7,14 +7,16 @@ export type RootStackParamList = {
     Pedido: { cliente: TClienteResponse, vendedor: TVendedorResponse };
     Financeiro: { cliente: TClienteResponse, vendedor: TVendedorResponse };
     Painel: { cliente: TClienteResponse, vendedor: TVendedorResponse };
+    Home: { vendedor: TVendedorResponse };
     Vendedor: any
+    Despesas: { vendedor: TVendedorResponse };
 
 };
 
-// export type LoginScreenProps = NativeStackScreenProps<
-//  RootStackParamList,
-//  'Login'
-// >;
+export type HomeScreenProps = NativeStackScreenProps<
+ RootStackParamList,
+ 'Home'
+>;
 
 export type ClienteScreenProps = NativeStackScreenProps<
  RootStackParamList,
@@ -39,6 +41,11 @@ export type FinanceiroScreenPorps = NativeStackScreenProps<
 export type VendedorScreenPorps = NativeStackScreenProps<
  RootStackParamList,
  'Vendedor'
+>;
+
+export type DespesasScreenPorps = NativeStackScreenProps<
+ RootStackParamList,
+ 'Despesas'
 >;
 
 // Cliente Resposta
@@ -178,7 +185,7 @@ export type TVendedorResponse = {
     data_cad_vendedor: string; // formato "0000-00-00 00:00:00"
     data_mod_vendedor: string; // formato "0000-00-00 00:00:00"
     lixeira: string;
-}
+};
 
 // Pedido via PDV
 export type PedidoResponse = {
@@ -292,7 +299,7 @@ export type TProduto = {
 
 export type TProdutoOnPedido ={
     
-}
+};
 
 // Produto inserido no pedido
 export type TProdutoPedido = {
@@ -351,27 +358,32 @@ export enum Status_pedido {
 
 // Lixeira
 export enum Lixeira_pedido {
-        'sim',
-        'não'
+        'Sim'= 'Sim',
+        'Não'='Nao'
+};
+
+export enum Liquidado {
+    'Sim'= 'Sim',
+    'Não'='Nao'
 };
 
 // Estoque lançado
 export enum Estoque_pedido {
 'Sim'=1,
 'Não'=0
-}
+};
 
 // Conta lançada
 export enum Conta_lancada {
     'Sim'=1,
     'Não'=0
-    }
+};
 
 // Parcelas do pedido
 export type TParcelas = {
     data_parcela: string,
     valor_parcela: string,
-    forma_pagamento: string,
+    forma_pagamento: string | null,
     observacoes_parcela: string,
     conta_liquidada: number
 };
@@ -434,7 +446,7 @@ export type TNovoPedido = {
     nome_cliente: string; //Nome do cliente
     vendedor_pedido: string; //Nome do vendedor
     vendedor_pedido_id: number | null; //Nome do vendedor
-    desconto_pedido: string | number | null;//Valor total do desconto
+    desconto_pedido?: string | number | null;//Valor total do desconto
     peso_total_nota?: string | number | null;//Peso total do pedido
     peso_total_nota_liq?: string | number | null;//Peso liquido do pedido
     data_pedido: string | null;//Data do pedido
@@ -449,4 +461,134 @@ export type TNovoPedido = {
     valor_total_produtos: string | number | null
 };
 
-export const dataFrete = [{ nome:'Destinatário', valor:1}, {nome: 'Terceiro', valor:2}, {nome:'Sem frete', valor:9}, {nome:'Emitente', valor:0}]
+export const dataFrete = [{ nome:'Destinatário', valor:1}, {nome: 'Terceiro', valor:2}, {nome:'Sem frete', valor:9}, {nome:'Emitente', valor:0}];
+
+//POST
+export type TDespesas ={
+        nome_conta: string;
+        id_banco: number;
+        vencimento_pag: string; // Formato "YYYY-MM-DD"
+        valor_pag: number; // Formato "00.00"
+        valor_pago?: number; // Formato "00.00"
+        categoria_pag?: string;
+        id_categoria?: number | null;
+        id_fornecedor?: number;
+        nome_fornecedor?: string;
+        data_emissao?: string; // Formato "YYYY-MM-DD"
+        n_documento_pag?: string;
+        observacoes_pag?: string;
+        id_centro_custos?: number;
+        centro_custos_pag?: string;
+        liquidado_pag?: string; // Valores possíveis: "Sim", "Não"
+        data_pagamento?: string; // Formato "YYYY-MM-DD"
+        obs_pagamento?: string;
+        forma_pagamento?: string | null; // Ex: "Cartão"
+        valor_juros?: number; // Formato "00.00"
+        valor_desconto?: number; // Formato "00.00"
+        valor_taxa?: number; // Formato "00.00"
+        valor_acrescimo?: string,
+};
+
+export type TBancoCadastro = {
+    id_banco_cad: number;
+    nome_banco_cad: string;
+    saldo_inicial: string; // Formato "0.00"
+    saldo_inicial_data: string; // Formato "YYYY-MM-DD"
+    gerar_boletos: number; // 0 ou 1
+    id_carteira: number;
+    carteira_banco: string | null;
+    convenio_banco: string | null;
+    cedente_banco: string | null;
+    agencia_banco: string | null;
+    agencia_dv_banco: string | null;
+    conta_banco: string | null;
+    conta_dv_banco: string | null;
+    codigo_cedente: string | null;
+    instrucoes_boleto: string | null;
+    dias_multa: number;
+    correcao_dia: string; // Formato "0.000"
+    taxa_boleto: string; // Formato "0.00"
+    cobrar_juros: number; // 0 ou 1
+    dias_juros: number;
+    msg_juros: number;
+    tipo_desconto: string; // Exemplo: "P"
+    status_banco: string; // Exemplo: "Ativo"
+    com_registro: number; // 0 ou 1
+    especie_cobranca: number;
+    data_cad_banco: string; // Formato "YYYY-MM-DD HH:mm:ss"
+    data_mod_banco: string; // Formato "YYYY-MM-DD HH:mm:ss"
+    sequencia: number;
+    padrao_receita: number; // 0 ou 1
+    padrao_despesa: number; // 0 ou 1
+    trampolin: number; // 0 ou 1
+    conta_externa_dda: number; // 0 ou 1
+    gerencianet: number; // 0 ou 1
+    layout_cobranca_cad: string | null;
+    protesto_codigo: number;
+    juros_codigo: number;
+    multa_codigo: number;
+    aceite_banco: string; // Exemplo: "N"
+    lixeira: string; // Exemplo: "Sim"
+    id_conta_ob: string | null;
+    consentimento_ob: string; // Exemplo: "N"
+    hash_ob: string | null;
+    liquida_taxa: number; // 0 ou 1
+    id_especie_titulo: string | null;
+    criar_conta_stone: number; // 0 ou 1
+    conta_stone: number; // 0 ou 1
+    data_consentimento: string | null; // Formato "YYYY-MM-DD" ou null
+    boleto_facil_observacao_boleto: number; // 0 ou 1
+    segmento_S: number; // 0 ou 1
+    numero_banco: number;
+    multa_atraso: string; // Formato "0.00"
+};
+
+export type TCentrosCusto = {
+    id_centro_custos: number,
+    desc_centro_custos: string,
+    status_centro_custos: string,
+    data_cad_centro: any,
+    data_mod_centro: any,
+    lixeira: Lixeira_pedido
+};
+
+export type TContaReceber = {
+    nome_conta?: string,
+    id_categoria?: number,
+    categoria_rec?: string,
+    id_banco?: number,
+    id_cliente?: number,
+    nome_cliente?: string,
+    vencimento_rec?: string,
+    valor_rec?: string,
+    valor_pago : string,
+    data_emissao?: string,
+    n_documento_rec?: string,
+    observacoes_rec?: string,
+    id_centro_custos?: number,
+    centro_custos_rec?: string,
+    liquidado_rec : Liquidado,
+    data_pagamento : string | null,
+    obs_pagamento : string | null,
+    forma_pagamento : string,
+    tipo_conta?: string,
+    valor_juros?: string,
+    valor_desconto?: string,
+    valor_acrescimo?: string,
+    valor_taxa?: number; // Formato "00.00"
+
+};
+
+export type TCategoFinanceira = {
+    id_categoria: number,
+    id_grupo: number,
+    id_categoria_pai: number,
+    tipo_categoria: string,
+    desc_categoria: string,
+    visivel_dre: string,
+    id_contabilizacao: number,
+    lixeira: string,
+    grupo_financeiro: string,
+    categoria_pai: null
+}
+  
