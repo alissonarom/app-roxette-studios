@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import { View, Text, Image, StyleSheet, Dimensions, ActivityIndicator } from "react-native";
-import { ClienteScreenProps, RootStackParamList, TClienteRegister } from '../types';
+import { ClienteScreenProps, RootStackParamList } from '../types';
 import {Picker} from '@react-native-picker/picker';
 import { Button } from 'react-native-paper';
 import { TClienteResponse } from '../types';
@@ -26,33 +26,6 @@ export default function Cliente({navigation}:ClienteScreenProps) {
       return navigation.navigate('Vendedor')
   } 
 
-  // const getClientes = async () => {
-  //   const headers = {
-  //     'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
-  //     'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
-  //     'cache-control': 'no-cache',
-  //     'content-type': 'application/json',
-  //   };
-  //   try {
-  //     const response = await fetch('/api/clientes', {
-  //       method: 'GET',
-  //       headers,
-  //     });
-  
-  //     const json = await response.json();
-  //     // Filtrar clientes que têm o vendedor_cliente_id igual ao id_vendedor
-  //   const clientesFiltrados = json.data.filter((cliente:TClienteRegister) => cliente.vendedor_cliente_id === vendedor.id_vendedor);
-    
-  //   setData(clientesFiltrados); // Definir o estado apenas com os clientes filtrados
-
-  //   } catch (error) {
-  //     console.error('Erro:', error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  //   // setData(dataClientes);
-  //   setLoading(false);
-  // };
   const getClientes = async () => {
     setLoading(true);
     const headers = {
@@ -142,8 +115,8 @@ export default function Cliente({navigation}:ClienteScreenProps) {
           })}
         </Picker>
         <Button style={styles.button} buttonColor="#1F88D9" mode="contained" onPress={handleSignIn}>Avançar</Button>
-        <Button style={styles.button} textColor="white" mode="outlined" onPress={handleDespesasScreen}>ou Lançe uma despesa</Button>
-        <Button style={styles.button} textColor="white" mode="outlined" onPress={changeCliente}>Trocar de vendedor</Button>
+        <Button style={[styles.button, {borderColor:"white", marginVertical: 0}]} textColor="white" mode="outlined" onPress={handleDespesasScreen}>Lançar despesas</Button>
+        <Button style={styles.button} textColor="white" mode="text" onPress={changeCliente}>Trocar de vendedor</Button>
         </>)}
       </View>
     );
@@ -167,7 +140,8 @@ export const styles = StyleSheet.create({
       height: 50,
       borderRadius: 5,
       justifyContent: "center",
-      marginHorizontal: 30
+      marginHorizontal: 20,
+      marginVertical:10
     },
     text: {
       fontSize: 20,

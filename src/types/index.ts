@@ -590,5 +590,80 @@ export type TCategoFinanceira = {
     lixeira: string,
     grupo_financeiro: string,
     categoria_pai: null
-}
+};
+
+export type TOrcamento = {
+    id_cliente: number;
+    nome_cliente: string;
+    vendedor_pedido: string;
+    vendedor_pedido_id: number;
+    desconto_pedido: string;
+    peso_total_nota: string;
+    peso_total_nota_liq: string;
+    frete_pedido: string;
+    valor_baseICMS: string;
+    valor_ICMS: string;
+    valor_baseST: string;
+    valor_ST: string;
+    valor_IPI: string;
+    transportadora_pedido: string;
+    id_transportadora: number;
+    data_pedido: string;
+    prazo_orcamento: number;
+    referencia_pedido: string;
+    obs_pedido: string;
+    obs_interno_pedido: string;
+    status_pedido: string;
+};
+
+export type TOrcamentoResponse = {
+        id_ped: number;
+        id_pedido: number;
+        id_cliente: number;
+        nome_cliente: string;
+        id_local_retirada: number;
+        id_local_cobranca: number;
+        vendedor_pedido: string;
+        vendedor_pedido_id: number;
+        listapreco_produtos: number;
+        valor_total_produtos: string;
+        desconto_pedido: string;
+        desconto_pedido_porc: string;
+        peso_total_nota: string | null;
+        peso_total_nota_liq: string | null;
+        frete_pedido: string;
+        valor_total_nota: string | null;
+        valor_baseICMS: string | null;
+        valor_ICMS: string | null;
+        valor_baseST: string | null;
+        valor_ST: string | null;
+        valor_IPI: string | null;
+        condicao_pagamento_id: number;
+        condicao_pagamento: number;
+        frete_por_pedido: number;
+        transportadora_pedido: string | null;
+        id_transportadora: number | null;
+        data_pedido: string; // Data no formato "yyyy-mm-dd"
+        prazo_entrega: string | null;
+        referencia_pedido: string | null;
+        obs_pedido: string;
+        obs_interno_pedido: string | null;
+        status_pedido: string;
+        contas_pedido: number;
+        comissao_pedido: number;
+        estoque_pedido: number;
+        pdv_emitido: null | string;
+        ordemc_emitido: number;
+        data_cad_pedido: string; // Data e hora no formato "yyyy-mm-dd HH:mm:ss"
+        data_mod_pedido: string; // Data e hora no formato "yyyy-mm-dd HH:mm:ss"
+        id_aplicativo: null | number;
+        id_pedido_aplicativo: null | number;
+        id_almoxarifado: number | null;
+        pagamento_com_vhpay: number;
+        pagamento_com_conta_integrada: number;
+        link_pgto_gerado: number;
+        lixeira: string;
+        produtos: TProdutoPedido[],
+        parcelas: TParcelas[]
+};
   

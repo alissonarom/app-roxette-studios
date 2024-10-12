@@ -34,8 +34,8 @@ export default function Vendedor({route, navigation}:VendedorScreenPorps) {
     } finally {
       setLoading(false);
     }
-    // setData(dataVendedor)
-    setLoading(false);
+   setData(dataVendedor)
+    // setLoading(false);
   };
 
   function handleSignIn() {
