@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { View, Text, ScrollView } from "react-native";
-import { Liquidado, NovoPedidoScreenPorps, TBancoCadastro, TCategoFinanceira, TContaReceber } from "../../types/index";
+import { Liquidado, NovoPedidoScreenPorps, TBancoCadastro, TCategoFinanceira, TContaReceber, TOrcamento } from "../../types/index";
 import { Button, Card, DataTable, IconButton, TextInput, Snackbar, ActivityIndicator  } from 'react-native-paper';
 import { styles } from "../styles";
 import { SafeAreaView } from "react-native";
@@ -65,20 +65,20 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
 
     const atualizarParcelas = () => {
         if (!pagamentoParcelado.length && arrayProdutos.length > 0 && (parcelas || formaPagamento)) {
-          const desconto = totalDescontoProdutos;
-          const numParcelas = parcelas ? parseInt(parcelas) : 1;
-          const novoArrayParcelas = [];
-      
+        const novoArrayParcelas = [];
+        const desconto = totalDescontoProdutos ?? 0;
+        const numParcelas = parcelas ? parseInt(parcelas) : 1;
+        console.log('desconto, numParcelas, numParcelas', desconto, numParcelas, totalProdutos)
           for (let i = 1; i <= numParcelas; i++) {
             novoArrayParcelas.push({
               data_parcela: formatDate(prazo),
-              valor_parcela: `${(parseFloat(totalProdutos) - desconto) / numParcelas}`,
+              valor_parcela: String((parseFloat(totalProdutos) - desconto) / numParcelas),
               forma_pagamento: formaPagamento,
               observacoes_parcela: observacao || '',
               conta_liquidada: 0
             });
           }
-      
+          console.log('novoArrayParcelas', novoArrayParcelas)
           setPagamentoParcelado(novoArrayParcelas);
         } else if (pagamentoParcelado.length) {
           setPagamentoParcelado([]);
@@ -180,7 +180,7 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
               nome_cliente: cliente.razao_cliente, // Nome do cliente
               vendedor_pedido: vendedor.razao_vendedor, // Nome do vendedor
               vendedor_pedido_id: vendedor.id_vendedor, // ID do vendedor
-              // desconto_pedido: String(totalDescontoProdutos), // Valor total do desconto
+              desconto_pedido: String(totalDescontoProdutos), // Valor total do desconto
               peso_total_nota: '0', // Peso total do pedido
               peso_total_nota_liq: '0', // Peso líquido do pedido
               data_pedido: new Date().toISOString().split('T')[0], // Data do pedido
@@ -192,6 +192,23 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
               estoque_pedido: Estoque_pedido.Não, // Estoque lançado (Sim/Não)
               contas_pedido: Conta_lancada.Sim, // Contas lançadas (Sim/Não)
               valor_total_produtos: totalProdutos
+            };
+    };
+    const novoOrcamento = () => {
+            return {
+              id_cliente: cliente.id_cliente, // ID do cliente 
+              nome_cliente: cliente.razao_cliente, // Nome do cliente
+              vendedor_pedido: vendedor.razao_vendedor, // Nome do vendedor
+              vendedor_pedido_id: vendedor.id_vendedor, // ID do vendedor
+              desconto_pedido: String(totalDescontoProdutos), // Valor total do desconto
+              peso_total_nota: '0', // Peso total do pedido
+              peso_total_nota_liq: '0', // Peso líquido do pedido
+              data_pedido: new Date().toISOString().split('T')[0], // Data do pedido
+              prazo_orcamento: new Date(prazo).toISOString().split('T')[0], // Prazo de entrega (Dias)
+              referencia_pedido: null, // Referência do pedido
+              obs_pedido: observacao, // Observações do pedido
+              obs_interno_pedido: '', // Observação interna do pedido
+              status_pedido: Status_pedido["Em Aberto"], // Status do pedido
             };
     };
 
@@ -209,13 +226,10 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
             },
             body: JSON.stringify(novoPedido),
         });
-        console.log('novoPedido', novoPedido);
         if (!pedidoResponse.ok) {
-            console.error('Erro: gerar pedido');
             throw new Error('Erro ao criar o pedido');
         }
         const pedidoData = await pedidoResponse.json();
-        console.log('Pedido criado com sucesso:', pedidoData);
         return pedidoData.data[0].id_ped; // Retorna o ID do pedido criado
     } catch (error) {
         console.error('Erro ao criar o pedido:', error);
@@ -223,7 +237,7 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
     }
     };
 
-    const postOrcamento = async (novoPedido:TNovoPedido) => {
+    const postOrcamento = async (novoOrcamento:TOrcamento) => {
         try {
             const pedidoResponse = await fetch('/api/orcamentos', {
                 method: 'POST',
@@ -233,24 +247,20 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                     'cache-control': 'no-cache',
                     'content-type': 'application/json',
                 },
-                body: JSON.stringify(novoPedido),
+                body: JSON.stringify(novoOrcamento),
             });
-            console.log('novo Orçamento', novoPedido);
             if (!pedidoResponse.ok) {
-                console.error('Erro: gerar orçamento');
-                throw new Error('Erro ao criar o orçamento');
+                throw new Error('Erro interno ao criar o orçamento');
             }
             const pedidoData = await pedidoResponse.json();
-            console.log('Orçamento criado com sucesso:', pedidoData);
-            return pedidoData.data[0].id_ped; // Retorna o ID do pedido criado
+            return pedidoData.data.id_orcamento; // Retorna o ID do orçamento criado
         } catch (error) {
             console.error('Erro ao criar o orçamento:', error);
             throw error;
         }
         };
     // Função para adicionar os produtos ao pedido
-    const postProdutos = async (idPedido:number, produtos:TProdutoPedido[]) => {
-        if (type === 'pedido'){
+    const postProdutosPedido = async (idPedido:number, produtos:TProdutoPedido[]) => {
             try {
                     const response = await fetch(`/api/pedidos/${idPedido}/produtos`, {
                         method: 'POST',
@@ -273,20 +283,23 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
             } catch (error) {
                 console.error('Erro ao cadastrar os produtos no pedido:', error);
                 throw error;
-            }
+           
         };
-        if (type === 'orcamento'){
-            try {
-                    const response = await fetch(`/api/orcamento/${idPedido}/produtos`, {
-                        method: 'POST',
-                        headers: {
-                            'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
-                            'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
-                            'cache-control': 'no-cache',
-                            'content-type': 'application/json',
-                        },
-                        body: JSON.stringify(produtos),
-                    });
+    };
+    // Função para adicionar os produtos ao pedido
+    const postProdutosOrcamento = async (idPedido:number, produtos:TProdutoPedido[]) => {
+        console.log('entrou na função postProdutosOrcamento')
+        try {
+            const response = await fetch(`/api/orcamentos/${idPedido}/produtos`, {
+                method: 'POST',
+                headers: {
+                    'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
+                    'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
+                    'cache-control': 'no-cache',
+                    'content-type': 'application/json',
+                },
+                body: JSON.stringify(produtos),
+            });
                 if (!response.ok) {
                     console.error('Erro: gravar produtos no orcamento');
                     throw new Error('Erro ao cadastrar os produtos no orcamento');
@@ -295,10 +308,10 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                 console.log('Produtos cadastrados com sucesso no orcamento:', idPedido);
                 console.log('produtosResponse:', produtosData); // Agora `produtosData` contém o objeto resolvido
                 
-            } catch (error) {
-                console.error('Erro ao cadastrar os produtos no orcamento:', error);
-                throw error;
-            }
+        } catch (error) {
+            console.error('Erro ao cadastrar os produtos no orcamento:', error);
+            throw error;
+
         };
     };
     // Função para adicionar as parcelas ao pedido
@@ -325,7 +338,7 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
         };
         if (type === 'orcamento'){
             try {
-                const response = await fetch(`/api/orcamento/${idPedido}/parcelas`, {
+                const response = await fetch(`/api/orcamentos/${idPedido}/parcelas`, {
                     method: 'POST',
                     headers: {
                         'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
@@ -357,9 +370,10 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
               desconto_produto: descontoProdutos,
               valor_desconto: ""
           };
-            setTotalProdutos(String(parseInt(totalProdutos) + (parseInt(quantidadeProdutos) * parseInt(produto.valor_produto))));
+          setTotalProdutos(String(parseFloat(totalProdutos || "0") + (parseFloat(quantidadeProdutos || "0") * parseFloat(produto.valor_produto || "0"))));
             setTotalDescontoProdutos(totalDescontoProdutos + (descontoProdutos ? parseFloat(descontoProdutos): 0));
             setArrayProdutos((prevArray) => [...prevArray, novoProduto]);
+            console.log()
         }
         setProduto(null); // Reset Picker
         setQuantidadeProdutos('');
@@ -441,9 +455,8 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
             valor_custo_produto: produto.valor_custo_produto ? parseFloat(produto.valor_custo_produto).toFixed(4) : undefined,
             peso_produto: produto.peso_produto ? parseFloat(produto.peso_produto).toFixed(2) : undefined,
             peso_liq_produto: produto.peso_liq_produto ? parseFloat(produto.peso_liq_produto).toFixed(2) : undefined,
-            valor_desconto: parseFloat('0').toFixed(4)
         }));
-        await postProdutos(idPedido, produtos);
+        await postProdutosPedido(idPedido, produtos);
 
         // Cadastra as parcelas no pedido
         const parcelas = pagamentoParcelado.map((parcela) => ({
@@ -474,9 +487,10 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
         setLoadingPedido(true);
         try {
             // Cria o pedido
-            const idPedido = await postOrcamento(novoPedido());
+            const idPedido = await postOrcamento(novoOrcamento());
             // await criarContaReceber(String(idPedido));
-    
+            
+            console.log('idPedido', idPedido)
             // Cadastra os produtos no pedido
             const produtos = arrayProdutos.map((produto) => ({
                 id_produto: produto.id_produto,
@@ -489,9 +503,8 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                 valor_custo_produto: produto.valor_custo_produto ? parseFloat(produto.valor_custo_produto).toFixed(4) : undefined,
                 peso_produto: produto.peso_produto ? parseFloat(produto.peso_produto).toFixed(2) : undefined,
                 peso_liq_produto: produto.peso_liq_produto ? parseFloat(produto.peso_liq_produto).toFixed(2) : undefined,
-                valor_desconto: parseFloat('0').toFixed(4)
             }));
-            await postProdutos(idPedido, produtos);
+            await postProdutosOrcamento(idPedido, produtos);
     
             // Cadastra as parcelas no pedido
             const parcelas = pagamentoParcelado.map((parcela) => ({
@@ -504,17 +517,16 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
             await postParcelas(idPedido, parcelas);
     
             // Atualiza pedidos, se necessário
-            if (pedidosContext) {
-                pedidosContext.atualizarPedidos(cliente.id_cliente, vendedor.id_vendedor);
-                pedidosContext.atualizarOrcamentos(cliente.id_cliente, vendedor.id_vendedor);
-            }
-    
+            
         } catch (error) {
             console.error('Erro ao criar o orçamento ou cadastrar os produtos e parcelas:', error);
         } finally {
             setLoading(false);
             setLoadingPedido(false);
             clearPainel();
+            if (pedidosContext) {
+                pedidosContext.atualizarOrcamentos(cliente.id_cliente, vendedor.id_vendedor);
+            }
         }
         };
 
@@ -652,6 +664,7 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                                     label="Qtde"
                                     style={{ marginHorizontal: 5, width: 60, backgroundColor: 'white', fontSize: 14, fontFamily: 'Roboto' }}
                                     value={quantidadeProdutos}
+                                    keyboardType="numeric"
                                     onChangeText={handleChangeQuantidade}
                                     disabled={type === ''}/>
                                 <IconButton
@@ -743,6 +756,7 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                                     style={{ marginHorizontal: 5, width: 110, backgroundColor: 'white', fontSize: 14, fontFamily: 'Roboto' }}
                                     value={parcelas}
                                     onChangeText={handleChangeParcelas}
+                                    keyboardType="numeric"
                                     disabled={!arrayProdutos.length} />
                                 <IconButton
                                     style={{ width: 25 }}
@@ -750,7 +764,7 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                                     iconColor={(pagamentoParcelado.length > 0) ? "red" : "green"}
                                     size={25}
                                     onPress={() => {
-                                        atualizarParcelas();  // Chama a mesma função ao pressionar o botão
+                                        setPagamentoParcelado([]); setParcelas('');  // Chama a mesma função ao pressionar o botão
                                       }}
                                     disabled={!(parcelas && formaPagamento)} />
                             </View>
@@ -767,7 +781,7 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                                             <DataTable.Cell style={[styles.tableTitlePagamento, { maxWidth: 25 }]} textStyle={{ fontSize: 13 }}>{index+1}</DataTable.Cell>
                                             <DataTable.Cell style={styles.tableTitlePagamento} textStyle={{ fontSize: 13 }}>{parcelas.forma_pagamento}</DataTable.Cell>
                                             <DataTable.Cell style={styles.tableTitlePagamento} textStyle={{ fontSize: 13 }}>{(parcelas.data_parcela)}</DataTable.Cell>
-                                            <DataTable.Cell style={styles.tableTitlePagamento} textStyle={{ fontSize: 13 }}>{`R$ ${parcelas.valor_parcela}`}</DataTable.Cell>
+                                            <DataTable.Cell style={styles.tableTitlePagamento} textStyle={{ fontSize: 13 }}>{`R$${parcelas.valor_parcela}`}</DataTable.Cell>
                                         </DataTable.Row>
                                     ))}
                                 </DataTable> : null}
@@ -806,7 +820,7 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                     <Button
                         style={{ marginHorizontal: 60 }}
                         disabled={(arrayProdutos.length && pagamentoParcelado.length) ? false : true}
-                        labelStyle={{ fontSize: 15, fontWeight: "600" }}
+                        labelStyle={{ fontSize: 15, fontWeight: "600", color: (arrayProdutos.length && pagamentoParcelado.length) ? '#145B91' : 'darkgrey'  }}
                         buttonColor='white'
                         textColor="#145B91"
                         mode="contained"
@@ -821,7 +835,7 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                     onDismiss={()=>setVisible(false)}
                     duration={1000}
                     >
-                    {type} criado com sucesso.
+                    <Text style={{ color: 'white'}}>{type} criado com sucesso.</Text>
                 </Snackbar>
         </SafeAreaView>
     );

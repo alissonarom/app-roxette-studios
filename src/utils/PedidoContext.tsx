@@ -87,7 +87,7 @@ export const PedidosProvider = ({ children }: { children: ReactNode }) => {
       const orcamentosComDetalhes = await Promise.all(
         orcamentosFiltrados.map(async (orcamento: any) => {
           // Buscar produtos do pedido
-          const produtosResponse = await fetch(`/api/orcamentos/${orcamento.id_ped}/produtos`, {
+          const produtosResponse = await fetch(`/api/orcamentos/${orcamento.id_orcamento}/produtos`, {
             method: 'GET',
             headers,
           });
@@ -96,7 +96,7 @@ export const PedidosProvider = ({ children }: { children: ReactNode }) => {
           console.log('GET produtos de cada orçamentos', produtos)
 
           // Buscar parcelas do pedido
-          const parcelasResponse = await fetch(`/api/orcamentos/${orcamento.id_ped}/parcelas`, {
+          const parcelasResponse = await fetch(`/api/orcamentos/${orcamento.id_orcamento}/parcelas`, {
             method: 'GET',
             headers,
           });

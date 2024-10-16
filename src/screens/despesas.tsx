@@ -55,15 +55,6 @@ export default function Despesas({navigation}:DespesasScreenPorps) {
     }, []);
     //clear function
     const clearPainel = () => {
-        // setNomeDespesa('');
-        // setContaBancaria(null);
-        // setFormaPagamento(null);
-        // setCategoria('');
-        // setVencimento(new Date());
-        // setDataPagamento(new Date());
-        // setValorBaixa(0);
-        // setFornecedor('');
-        // setJurosMulta(0),
         setTimeout(() => {
             navigation.navigate('Home', { vendedor: vendedor });
         }, 1000);
@@ -203,29 +194,35 @@ export default function Despesas({navigation}:DespesasScreenPorps) {
                     <Text style={[styles.h3, {margin:10, fontSize: 18}]}>Dados da despesa</Text>
                     <Card mode="elevated" style={styles.cardPanel}>
                         {/*Nome da despesa, conta bancaria*/}
-                        <View style={[styles.cardPanelContent, {marginVertical: 10}]}>
-                            <TextInput
-                                outlineColor='#145B91'
-                                activeOutlineColor='#145B91'
-                                style={{ marginHorizontal: 5, width: 190, backgroundColor: 'white', fontSize: 14, fontFamily: 'Roboto' }}
-                                value={nomeDespesa}
-                                onChangeText={setNomeDespesa}
-                                mode="outlined"
-                                label="Nome da despesa*"
-                            />
-                            <Picker
-                                dropdownIconColor="#9E9E9E"
-                                style={styles.selectPicker}
-                                selectedValue={contaBancaria?.nome_banco_cad}
-                                onValueChange={(itemValue, itemIndex) => {
-                                    const selectedItem = dataContaBancaria[itemIndex - 1];
-                                    setContaBancaria(selectedItem || null);
-                                } }>
+                        <View style={[styles.cardPanelContent,{marginVertical: 10, justifyContent: 'space-between'}]}>
+                            <View style={{marginVertical: 10, display: "flex", flexDirection: 'column', flexWrap: "nowrap"}}>
+                                <Text style={{ fontSize: 10, alignSelf: 'flex-start', color: nomeDespesa ? 'green' : 'red', marginLeft: 5 }}>obrigatório</Text>
+                                <TextInput
+                                    outlineColor='#145B91'
+                                    activeOutlineColor='#145B91'
+                                    style={{ marginHorizontal: 5, width: 190, backgroundColor: 'white', fontSize: 14, fontFamily: 'Roboto'}}
+                                    value={nomeDespesa}
+                                    onChangeText={setNomeDespesa}
+                                    mode="outlined"
+                                    label="Nome da despesa"
+                                />
+                            </View>
+                            <View style={{marginVertical: 10, display: "flex", flexDirection: 'column', flexWrap: "nowrap", flexGrow:1}}>
+                                <Text style={{ fontSize: 10, alignSelf: 'flex-start', color: contaBancaria ? 'green' : 'red', marginLeft: 5 }}>obrigatório</Text>
+                                <Picker
+                                    dropdownIconColor="#9E9E9E"
+                                    style={styles.selectPicker}
+                                    selectedValue={contaBancaria?.nome_banco_cad}
+                                    onValueChange={(itemValue, itemIndex) => {
+                                        const selectedItem = dataContaBancaria[itemIndex - 1];
+                                        setContaBancaria(selectedItem || null);
+                                    } }>
                                 <Picker.Item label='Conta Bancária' value='Conta Bancária' />
                                 {dataContaBancaria.map((item) => {
                                     return <Picker.Item label={truncateText(item.nome_banco_cad, 17)} value={item.nome_banco_cad} key={item.id_banco_cad} />;
                                 })}
                             </Picker>
+                            </View>
                         </View>
                         {/*Centro custo, Forma pagamento*/}
                         <View style={[styles.cardPanelContent, {marginVertical: 10}]}>
@@ -260,7 +257,10 @@ export default function Despesas({navigation}:DespesasScreenPorps) {
                         {/*Vencimento, data de emissão*/}
                         <View style={[styles.cardPanelContent, {marginVertical: 10}]}>
                             <View style={[styles.cardInputs, {marginHorizontal: 5}]}>
-                                <Text>Vencimento*</Text>
+                                <View style={{display: 'flex', flexDirection: 'row', justifyContent: 'space-between'}}>
+                                    <Text>Vencimento</Text>
+                                    <Text style={{ fontSize: 10, alignSelf: 'flex-start', color: vencimento ? 'green' : 'red', marginLeft: 5 }}>obrigatório</Text>
+                                </View>
                                 <DatePicker date={vencimento} setDate={setVencimento} />
                             </View>
                             <View style={[styles.cardInputs, {marginHorizontal: 5}]}>

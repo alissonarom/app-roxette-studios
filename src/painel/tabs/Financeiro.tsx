@@ -208,7 +208,7 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                 <View>
                     <Text style={{ fontWeight: '600', color: 'white' }}>Vendedor</Text>
                     {/* <Text numberOfLines={1} ellipsizeMode="tail" style={{ color: 'white', maxWidth: 150 }}>{vendedor.razao_vendedor}</Text> */}
-                    <Text numberOfLines={1} ellipsizeMode="tail" style={{ color: 'white', maxWidth: 150 }}>Alisson</Text>
+                    <Text numberOfLines={1} ellipsizeMode="tail" style={{ color: 'white', maxWidth: 150 }}>{vendedor.razao_vendedor}</Text>
                 </View>
             </View>
             <View style={{alignSelf:'center', flex: pedidosContext?.pedidos.length ? 1 : undefined }}>
@@ -227,7 +227,7 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                 <View style={{height:'50%'}}>
                     <ActivityIndicator size={'large'} color="#145B91"/>
                 </View>
-                : !pedidosContext.pedidos.length ?
+                : pedidosContext.pedidos.length ?
                     <List.Section>
                         <List.Accordion
                             title="Pedidos"
@@ -235,7 +235,6 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                             titleStyle={{color:'white'}}
                             right={props => <List.Icon {...props} icon="chevron-down" color="white"/>}
                             left={props => <List.Icon {...props} icon="card-multiple"  color="white"/>}>
-                            {/* {pedidosContext.pedidos.map((item, index) => ( */}
                             {pedidosContext.pedidos.map((item, index) => (
                                         <>
                                             <List.Accordion
@@ -245,7 +244,7 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                                                 description={item.data_pedido}
                                                 titleStyle={{ color: '#145B91', fontWeight: '600' }}
                                                 left={props => <List.Icon {...props} icon={states[item.status_pedido].icon} color={states[item.status_pedido].color} />}
-                                                right={props => <View style={{ display: 'flex', flexDirection: 'row' }}><Text>R$ {item.valor_total_nota}</Text><List.Icon {...props} icon='chevron-down' color={states[item.status_pedido].color} /></View>}>
+                                                right={props => <View style={{ display: 'flex', flexDirection: 'row' }}><Text>R$ {parseFloat(item.valor_total_produtos)-parseFloat(item.desconto_pedido)}</Text><List.Icon {...props} icon='chevron-down' color={states[item.status_pedido].color} /></View>}>
                                                 <View style={styles.viewCardPedido}>
                                                     <View>
                                                         <View style={{ display: 'flex', flexDirection: 'row' }}>
@@ -272,50 +271,50 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                                                         <Text>{item.id_pedido}</Text>
                                                     </View>
                                                 </View>
-                                                {/* <View style={styles.viewCardPedido}>
-                {Array.isArray(item.produtos) && item.produtos.length > 0 ? (
-                    <DataTable>
-                        <DataTable.Header>
-                            <DataTable.Title style={{ paddingBottom: 0}} textStyle={{color: '#145B91'}}>Produtos</DataTable.Title>
-                            <DataTable.Title style={{ justifyContent: 'center', maxWidth: 30, paddingBottom: 0}} textStyle={{color: '#145B91'}}>Qtd</DataTable.Title>
-                            <DataTable.Title style={{ justifyContent: 'center', maxWidth: 40, paddingBottom: 0 }} textStyle={{color: '#145B91'}}>V. unit.</DataTable.Title>
-                            <DataTable.Title style={{ justifyContent: 'center', maxWidth: 40, paddingBottom: 0 }} textStyle={{color: '#145B91'}}>Custo</DataTable.Title>
-                            <DataTable.Title style={{ justifyContent: 'center', maxWidth: 40, paddingBottom: 0 }} textStyle={{color: '#145B91'}}>Desc.</DataTable.Title>
-                            <DataTable.Title style={{ justifyContent: 'center', maxWidth: 60, paddingBottom: 0 }} textStyle={{color: '#145B91'}}>Total</DataTable.Title>
-                        </DataTable.Header>
-                        {item.produtos.slice().map((produtos, index) => (
-                            <DataTable.Row key={produtos.id_produto}>
-                                <DataTable.Cell textStyle={{fontSize: 10}}>{produtos.desc_produto}</DataTable.Cell>
-                                <DataTable.Cell style={{justifyContent: 'center', maxWidth: 30}} textStyle={{fontSize: 10}}>{Number(produtos.qtde_produto)}</DataTable.Cell>
-                                <DataTable.Cell style={{justifyContent: 'center', maxWidth: 40}} textStyle={{fontSize: 10}}>{`R$ ${Number(produtos.valor_unit_produto)}`}</DataTable.Cell>
-                                <DataTable.Cell style={{justifyContent: 'center', maxWidth: 40}} textStyle={{fontSize: 10}}>{`R$ ${Number(produtos.valor_custo_produto)}`}</DataTable.Cell>
-                                <DataTable.Cell style={{justifyContent: 'center', maxWidth: 40}} textStyle={{fontSize: 10}}>{`R$ ${Number(produtos.desconto_produto)}`}</DataTable.Cell>
-                                <DataTable.Cell style={{justifyContent: 'center', maxWidth: 60}} textStyle={{fontSize: 10}}>{`R$ ${Number(produtos.valor_total_produto)-Number(produtos.desconto_produto)}`}</DataTable.Cell>
-                            </DataTable.Row>
-                        ))}
-                    </DataTable>) : <Text>{String(item.produtos)}</Text>}
-                </View> */}
-                                                {/* <View style={styles.viewCardPedido}>
-                {Array.isArray(item.parcelas) && item.parcelas.length > 0 ? (
-                    <DataTable>
-                        <DataTable.Header>
-                            <DataTable.Title style={{ paddingBottom: 0 , maxWidth: 50}} textStyle={{color: '#145B91'}}>Parcelas</DataTable.Title>
-                            <DataTable.Title style={{ justifyContent: 'center', maxWidth: 70, paddingBottom: 0}} textStyle={{color: '#145B91'}}>Data</DataTable.Title>
-                            <DataTable.Title style={{ justifyContent: 'center', maxWidth: 70, paddingBottom: 0 }} textStyle={{color: '#145B91'}}>Valor</DataTable.Title>
-                            <DataTable.Title style={{ justifyContent: 'center', maxWidth: 90, paddingBottom: 0 }} textStyle={{color: '#145B91'}}>Forma pgto</DataTable.Title>
-                            <DataTable.Title style={{ justifyContent: 'center', maxWidth: 60, paddingBottom: 0 }} textStyle={{color: '#145B91'}}>Liquidada</DataTable.Title>
-                        </DataTable.Header>
-                        {item.parcelas.slice().map((parcelas, index) => (
-                            <DataTable.Row key={index}>
-                                <DataTable.Cell style={{ width: 30}} textStyle={{fontSize: 10}}>{index+1}</DataTable.Cell>
-                                <DataTable.Cell style={{justifyContent: 'center', maxWidth: 70}} textStyle={{fontSize: 10}}>{parcelas.data_parcela}</DataTable.Cell>
-                                <DataTable.Cell style={{justifyContent: 'center', maxWidth: 70}} textStyle={{fontSize: 10}}>{`R$ ${Number(parcelas.valor_parcela)}`}</DataTable.Cell>
-                                <DataTable.Cell style={{justifyContent: 'center', maxWidth: 90}} textStyle={{fontSize: 10}}>{parcelas.forma_pagamento}</DataTable.Cell>
-                                <DataTable.Cell style={{justifyContent: 'center', maxWidth: 60}} textStyle={{fontSize: 10}}>{parcelas.conta_liquidada ? parcelas.conta_liquidada : 'Nao'}</DataTable.Cell>
-                            </DataTable.Row>
-                        ))}
-                    </DataTable>) : <Text>{String(item.parcelas)}</Text>}
-                </View> */}
+                                                <View style={styles.viewCardPedido}>
+                                                {Array.isArray(item.produtos) && item.produtos.length > 0 ? (
+                                                    <DataTable>
+                                                        <DataTable.Header>
+                                                            <DataTable.Title style={{ paddingBottom: 0}} textStyle={{color: '#145B91'}}>Produtos</DataTable.Title>
+                                                            <DataTable.Title style={{ justifyContent: 'center', maxWidth: 30, paddingBottom: 0}} textStyle={{color: '#145B91'}}>Qtd</DataTable.Title>
+                                                            <DataTable.Title style={{ justifyContent: 'center', maxWidth: 40, paddingBottom: 0 }} textStyle={{color: '#145B91'}}>V. unit.</DataTable.Title>
+                                                            <DataTable.Title style={{ justifyContent: 'center', maxWidth: 40, paddingBottom: 0 }} textStyle={{color: '#145B91'}}>Custo</DataTable.Title>
+                                                            <DataTable.Title style={{ justifyContent: 'center', maxWidth: 40, paddingBottom: 0 }} textStyle={{color: '#145B91'}}>Desc.</DataTable.Title>
+                                                            <DataTable.Title style={{ justifyContent: 'center', maxWidth: 60, paddingBottom: 0 }} textStyle={{color: '#145B91'}}>Total</DataTable.Title>
+                                                        </DataTable.Header>
+                                                        {item.produtos.slice().map((produtos, index) => (
+                                                            <DataTable.Row key={produtos.id_produto}>
+                                                                <DataTable.Cell textStyle={{fontSize: 10}}>{produtos.desc_produto}</DataTable.Cell>
+                                                                <DataTable.Cell style={{justifyContent: 'center', maxWidth: 30}} textStyle={{fontSize: 10}}>{Number(produtos.qtde_produto)}</DataTable.Cell>
+                                                                <DataTable.Cell style={{justifyContent: 'center', maxWidth: 40}} textStyle={{fontSize: 10}}>{`R$ ${Number(produtos.valor_unit_produto)}`}</DataTable.Cell>
+                                                                <DataTable.Cell style={{justifyContent: 'center', maxWidth: 40}} textStyle={{fontSize: 10}}>{`R$ ${Number(produtos.valor_custo_produto)}`}</DataTable.Cell>
+                                                                <DataTable.Cell style={{justifyContent: 'center', maxWidth: 40}} textStyle={{fontSize: 10}}>{`R$ ${Number(produtos.desconto_produto)}`}</DataTable.Cell>
+                                                                <DataTable.Cell style={{justifyContent: 'center', maxWidth: 60}} textStyle={{fontSize: 10}}>{`R$ ${Number(produtos.valor_total_produto)-Number(produtos.desconto_produto)}`}</DataTable.Cell>
+                                                            </DataTable.Row>
+                                                        ))}
+                                                    </DataTable>) : <Text>{String(item.produtos)}</Text>}
+                                                </View>
+                                                <View style={styles.viewCardPedido}>
+                                                {Array.isArray(item.parcelas) && item.parcelas.length > 0 ? (
+                                                    <DataTable>
+                                                        <DataTable.Header>
+                                                            <DataTable.Title style={{ paddingBottom: 0 , maxWidth: 50}} textStyle={{color: '#145B91'}}>Parcelas</DataTable.Title>
+                                                            <DataTable.Title style={{ justifyContent: 'center', maxWidth: 70, paddingBottom: 0}} textStyle={{color: '#145B91'}}>Data</DataTable.Title>
+                                                            <DataTable.Title style={{ justifyContent: 'center', maxWidth: 70, paddingBottom: 0 }} textStyle={{color: '#145B91'}}>Valor</DataTable.Title>
+                                                            <DataTable.Title style={{ justifyContent: 'center', maxWidth: 90, paddingBottom: 0 }} textStyle={{color: '#145B91'}}>Forma pgto</DataTable.Title>
+                                                            <DataTable.Title style={{ justifyContent: 'center', maxWidth: 60, paddingBottom: 0 }} textStyle={{color: '#145B91'}}>Liquidada</DataTable.Title>
+                                                        </DataTable.Header>
+                                                        {item.parcelas.slice().map((parcelas, index) => (
+                                                            <DataTable.Row key={index}>
+                                                                <DataTable.Cell style={{ width: 30}} textStyle={{fontSize: 10}}>{index+1}</DataTable.Cell>
+                                                                <DataTable.Cell style={{justifyContent: 'center', maxWidth: 70}} textStyle={{fontSize: 10}}>{parcelas.data_parcela}</DataTable.Cell>
+                                                                <DataTable.Cell style={{justifyContent: 'center', maxWidth: 70}} textStyle={{fontSize: 10}}>{`R$ ${Number(parcelas.valor_parcela)}`}</DataTable.Cell>
+                                                                <DataTable.Cell style={{justifyContent: 'center', maxWidth: 90}} textStyle={{fontSize: 10}}>{parcelas.forma_pagamento}</DataTable.Cell>
+                                                                <DataTable.Cell style={{justifyContent: 'center', maxWidth: 60}} textStyle={{fontSize: 10}}>{parcelas.conta_liquidada ? parcelas.conta_liquidada : 'Nao'}</DataTable.Cell>
+                                                            </DataTable.Row>
+                                                        ))}
+                                                    </DataTable>) : <Text>{String(item.parcelas)}</Text>}
+                                                </View>
                                                 {checked ?
                                                     <View style={[styles.cardPanelContent, { marginVertical: 10, backgroundColor: 'white' }]}>
                                                         <View style={styles.cardInputs}>
@@ -362,7 +361,7 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                                                     </View>
                                                     <View style={[styles.subFooter, { marginBottom: 10 }]}>
                                                         <Text style={[styles.textFooter, { fontSize: 21 }]}>Total</Text>
-                                                        <Text style={[styles.textFooter, { fontSize: 21 }]}>R$ {item.valor_total_nota}</Text>
+                                                        <Text style={[styles.textFooter, { fontSize: 21 }]}>R$ {parseFloat(item.valor_total_produtos)-parseFloat(item.desconto_pedido)}</Text>
                                                     </View>
                                                     <View style={styles.cardPanelContent}>
                                                         <Button
@@ -402,7 +401,7 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
 		    	<View style={{height:'50%'}}>
 				    <ActivityIndicator size={'large'} color="#145B91"/>
 		    	</View>
-		    	: !pedidosContext.orcamentos.length ?
+		    	: pedidosContext.orcamentos.length ?
                 <List.Section>
                     <List.Accordion
                         title="Orçamentos"
@@ -410,7 +409,6 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                         titleStyle={{color:'white'}}
                         right={props => <List.Icon {...props} icon="chevron-down" color="white"/>}
                         left={props => <List.Icon {...props} icon="card-text" color="white"/>}>
-                        {/* {pedidosContext.pedidos.map((item, index) => ( */}
                         {pedidosContext.orcamentos.map((item, index) => (
                         <>
                             <List.Accordion
@@ -463,8 +461,8 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                                                 <DataTable.Cell style={{justifyContent: 'center', maxWidth: 30}} textStyle={{fontSize: 10}}>{Number(produtos.qtde_produto)}</DataTable.Cell>
                                                 <DataTable.Cell style={{justifyContent: 'center', maxWidth: 40}} textStyle={{fontSize: 10}}>{`R$ ${Number(produtos.valor_unit_produto)}`}</DataTable.Cell>
                                                 <DataTable.Cell style={{justifyContent: 'center', maxWidth: 40}} textStyle={{fontSize: 10}}>{`R$ ${Number(produtos.valor_custo_produto)}`}</DataTable.Cell>
-                                                <DataTable.Cell style={{justifyContent: 'center', maxWidth: 40}} textStyle={{fontSize: 10}}>{`R$ ${Number(produtos.desconto_produto)}`}</DataTable.Cell>
-                                                <DataTable.Cell style={{justifyContent: 'center', maxWidth: 60}} textStyle={{fontSize: 10}}>{`R$ ${Number(produtos.valor_total_produto)-Number(produtos.desconto_produto)}`}</DataTable.Cell>
+                                                <DataTable.Cell style={{justifyContent: 'center', maxWidth: 40}} textStyle={{fontSize: 10}}>{`R$ ${Number(produtos.valor_desconto)}`}</DataTable.Cell>
+                                                <DataTable.Cell style={{justifyContent: 'center', maxWidth: 60}} textStyle={{fontSize: 10}}>{`R$ ${Number(produtos.valor_total_produto)-Number(produtos.valor_desconto)}`}</DataTable.Cell>
                                             </DataTable.Row>
                                         ))}
                                     </DataTable>) : <Text>{String(item.produtos)}</Text>}
@@ -519,7 +517,7 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                     onDismiss={()=>setVisible(false)}
                     duration={1000}
                     >
-                    Pagamento feito com sucesso!
+                    <Text style={{ color: 'white'}}>Pagamento feito com sucesso!</Text>
             </Snackbar>
         </SafeAreaView>
     );

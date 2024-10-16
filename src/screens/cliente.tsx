@@ -22,7 +22,6 @@ export default function Cliente({navigation}:ClienteScreenProps) {
   } 
 
   function changeCliente() {
-    
       return navigation.navigate('Vendedor')
   } 
 
@@ -63,10 +62,10 @@ export default function Cliente({navigation}:ClienteScreenProps) {
       }
   
       // Filtrar clientes que têm o vendedor_cliente_id igual ao id_vendedor
-      let clientesFiltrados = allClientes.filter((cliente) => cliente.vendedor_cliente_id === vendedor.id_vendedor);
+      // let clientesFiltrados = allClientes.filter((cliente) => cliente.vendedor_cliente_id === vendedor.id_vendedor);
 
       // Ordenar clientes filtrados em ordem alfabética (por nome do cliente)
-      clientesFiltrados = clientesFiltrados.sort((a, b) =>
+      const clientesFiltrados = allClientes.sort((a, b) =>
       a.razao_cliente.localeCompare(b.razao_cliente)
     );
       
@@ -78,7 +77,6 @@ export default function Cliente({navigation}:ClienteScreenProps) {
     }
   };
   
-
   function handleSignIn() {
     if(client){
       return navigation.navigate('Painel', { cliente: client, vendedor: vendedor})

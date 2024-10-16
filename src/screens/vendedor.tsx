@@ -4,7 +4,6 @@ import { VendedorScreenPorps } from '../types';
 import {Picker} from '@react-native-picker/picker';
 import { Button } from 'react-native-paper';
 import { TVendedorResponse } from '../types';
-import { dataVendedor } from '../Mocks/produtoMock';
 // import { dataVendedor } from '../Mocks/produtoMock';
 
 var {width} = Dimensions.get('window');
@@ -34,8 +33,8 @@ export default function Vendedor({route, navigation}:VendedorScreenPorps) {
     } finally {
       setLoading(false);
     }
-   setData(dataVendedor)
-    // setLoading(false);
+    // setData(dataVendedor)
+    setLoading(false);
   };
 
   function handleSignIn() {

@@ -318,7 +318,7 @@ export type TProdutoPedido = {
     id_lote?: number,
     id_almoxarifado?: number,
     info_adicional?: string,
-    valor_desconto: string
+    valor_desconto?: string
 };
 
 // Transportadora
@@ -597,23 +597,23 @@ export type TOrcamento = {
     nome_cliente: string;
     vendedor_pedido: string;
     vendedor_pedido_id: number;
-    desconto_pedido: string;
-    peso_total_nota: string;
-    peso_total_nota_liq: string;
-    frete_pedido: string;
-    valor_baseICMS: string;
-    valor_ICMS: string;
-    valor_baseST: string;
-    valor_ST: string;
-    valor_IPI: string;
-    transportadora_pedido: string;
-    id_transportadora: number;
+    desconto_pedido?: string;
+    peso_total_nota?: string;
+    peso_total_nota_liq?: string;
+    frete_pedido?: string;
+    valor_baseICMS?: string;
+    valor_ICMS?: string;
+    valor_baseST?: string;
+    valor_ST?: string;
+    valor_IPI?: string;
+    transportadora_pedido?: string;
+    id_transportadora?: number;
     data_pedido: string;
-    prazo_orcamento: number;
-    referencia_pedido: string;
-    obs_pedido: string;
-    obs_interno_pedido: string;
-    status_pedido: string;
+    prazo_orcamento?: any;
+    referencia_pedido: string | null;
+    obs_pedido?: string;
+    obs_interno_pedido?: string;
+    status_pedido?: string;
 };
 
 export type TOrcamentoResponse = {
