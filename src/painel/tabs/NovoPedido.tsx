@@ -31,6 +31,7 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
     const [totalDescontoProdutos, setTotalDescontoProdutos] = useState(0);
     const [totalProdutos, setTotalProdutos] = useState('')
     const [dataProdutos, setDataProdutos] = useState<TProduto[]>([]);
+
     // route params
     const route = useRoute<RouteProp<RootStackParamList, 'Pedido'>>();
     const { cliente, vendedor } = route.params;
@@ -39,6 +40,9 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
     const [formaPagamento, setFormaPagamento] = useState('');
     const [parcelas, setParcelas] = useState('');
     const [pagamentoParcelado, setPagamentoParcelado] = useState<TParcelas[]>([]);
+    const [valorParcela, setValorParcela] = useState<string>('');
+    const [prazoParcela, setPrazoParcela] = useState(new Date());
+
     //obs
     const [observacao, onChangeobservacao] = useState<string>('');
     //prazo
@@ -60,8 +64,8 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
     }, []);
 
     useEffect(() => {
-        atualizarParcelas();  // Chama a função de atualização de parcelas
-    }, [arrayProdutos, parcelas, formaPagamento]);
+        setPagamentoParcelado([]);  // Chama a função de atualização de parcelas
+    }, [arrayProdutos]);
 
     const atualizarParcelas = () => {
         if (!pagamentoParcelado.length && arrayProdutos.length > 0 && (parcelas || formaPagamento)) {
@@ -236,7 +240,6 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
         throw error;
     }
     };
-
     const postOrcamento = async (novoOrcamento:TOrcamento) => {
         try {
             const pedidoResponse = await fetch('/api/orcamentos', {
@@ -408,8 +411,7 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
             forma_pagamento : formaPagamento,
             tipo_conta : '',
             valor_juros : "00.00",
-            valor_desconto : "00.00",
-            valor_acrescimo : String(totalDescontoProdutos)
+            valor_desconto : String(totalDescontoProdutos)
         };
         console.log('despesa no criarContaReceber', despesa)
         try {
@@ -449,7 +451,6 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
             desc_produto: produto.desc_produto,
             qtde_produto: parseFloat(produto.qtde_produto).toFixed(4),
             valor_unit_produto: parseFloat(produto.valor_unit_produto).toFixed(4),
-            desconto_produto: produto.desconto_produto ? parseFloat(produto.desconto_produto).toFixed(2) : undefined,
             ipi_produto: produto.ipi_produto ? parseFloat(produto.ipi_produto).toFixed(2) : undefined,
             icms_produto: produto.icms_produto ? parseFloat(produto.icms_produto).toFixed(2) : undefined,
             valor_custo_produto: produto.valor_custo_produto ? parseFloat(produto.valor_custo_produto).toFixed(4) : undefined,
@@ -528,7 +529,7 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                 pedidosContext.atualizarOrcamentos(cliente.id_cliente, vendedor.id_vendedor);
             }
         }
-        };
+    };
 
     const removerProduto = (index: number) => {
     setArrayProdutos((prevArray) => {
@@ -551,6 +552,11 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
     const handleChangeDesconto = (texto: any) => {
         const valorFormatado = formatarValor(texto);
         setDescontoProdutos(valorFormatado)
+    };
+
+    const handleChangeValorParcela = (texto: any) => {
+        const valorFormatado = formatarValor(texto);
+        setValorParcela(valorFormatado)
     };
 
     const handleChangeQuantidade = (texto: any) => {
@@ -598,7 +604,7 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                     <Card mode="elevated" style={styles.cardPanel}>
                         <View style={[styles.cardPanelContent, { justifyContent: 'space-between' }]}>
                             <Text style={styles.h3}>Selecione o tipo  </Text>
-                            <Text style={{ fontSize: 10, alignSelf: 'flex-start', color: arrayProdutos.length ? 'green' : 'red' }}>obrigatório</Text>
+                            <Text style={{ fontSize: 10, alignSelf: 'flex-start', color: type ? 'green' : 'red' }}>obrigatório</Text>
                         </View>
                         <View style={[styles.cardPanelContent, {justifyContent: 'space-around'}]}>
                             <Button
@@ -712,26 +718,26 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                     <Card mode="elevated" style={styles.cardPanel}>
                         <Text style={styles.h3}>Prazos</Text>
                         <View style={styles.cardPanelContent}>
-                                <View style={styles.cardInputs}>
-                                    <Text>Data do pedido</Text>
-                                    <TextInput
-                                        outlineColor='#145B91'
-                                        activeOutlineColor='#145B91'
-                                        mode="outlined"
-                                        label="Hoje"
-                                        style={{ backgroundColor: '#F7F8FA', fontSize: 14, fontFamily: 'Roboto' }}
-                                        disabled />
-                                </View>
-                                <View style={styles.cardInputs}>
-                                    <Text>Prazo de entrega</Text>
-                                    {<DatePicker date={prazo} setDate={setPrazo} />}
-                                </View>
+                            <View style={styles.cardInputs}>
+                                <Text>Data do pedido</Text>
+                                <TextInput
+                                    outlineColor='#145B91'
+                                    activeOutlineColor='#145B91'
+                                    mode="outlined"
+                                    label="Hoje"
+                                    style={{ backgroundColor: '#F7F8FA', fontSize: 14, fontFamily: 'Roboto' }}
+                                    disabled />
+                            </View>
+                            <View style={styles.cardInputs}>
+                                <Text>Prazo de entrega</Text>
+                                {<DatePicker date={prazo} setDate={setPrazo} />}
+                            </View>
                         </View>
                     </Card>
                     {/* Pagamento */}
                     <Card mode="elevated" style={styles.cardPanel}>
                             <View style={[styles.cardPanelContent, { justifyContent: 'space-between' }]}>
-                                <Text style={styles.h3}>Forma de pagamento ou nº parcelas </Text>
+                                <Text style={styles.h3}>Pagamento</Text>
                                 <Text style={{ fontSize: 10, alignSelf: 'flex-start', color: formaPagamento && parcelas ? 'green' : 'red' }}>obrigatório</Text>
                             </View>
                             <View style={styles.cardPanelContent}>
@@ -748,25 +754,26 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                                         return <Picker.Item label={item} value={item} key={item} />;
                                     })}
                                 </Picker>
+                                <View style={styles.cardInputs}>
+                                    {<DatePicker date={prazoParcela} setDate={setPrazoParcela} />}
+                                </View>
                                 <TextInput
                                     outlineColor='#145B91'
                                     activeOutlineColor='#145B91'
+                                    style={{ marginHorizontal: 2, width: 70, backgroundColor: 'white', fontSize: 14, fontFamily: 'Roboto' }}
+                                    value={valorParcela}
+                                    onChangeText={handleChangeValorParcela}
                                     mode="outlined"
-                                    label="Nº Parcelas"
-                                    style={{ marginHorizontal: 5, width: 110, backgroundColor: 'white', fontSize: 14, fontFamily: 'Roboto' }}
-                                    value={parcelas}
-                                    onChangeText={handleChangeParcelas}
+                                    label="Valor"
                                     keyboardType="numeric"
-                                    disabled={!arrayProdutos.length} />
+                                    disabled={type === ''}/>
                                 <IconButton
                                     style={{ width: 25 }}
-                                    icon={(pagamentoParcelado.length > 0) ? "delete" : "plus-circle"}
-                                    iconColor={(pagamentoParcelado.length > 0) ? "red" : "green"}
+                                    icon={"plus-circle"}
+                                    iconColor="green"
                                     size={25}
-                                    onPress={() => {
-                                        setPagamentoParcelado([]); setParcelas('');  // Chama a mesma função ao pressionar o botão
-                                      }}
-                                    disabled={!(parcelas && formaPagamento)} />
+                                    onPress={() => {atualizarParcelas()}}
+                                    disabled={!(valorParcela && formaPagamento && prazoParcela)} />
                             </View>
                             {pagamentoParcelado.length ?
                                 <DataTable>
@@ -777,12 +784,24 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                                         <DataTable.Title numeric style={styles.tableTitlePagamento}>Valor</DataTable.Title>
                                     </DataTable.Header>
                                     {pagamentoParcelado.map((parcelas, index) => (
+                                        <>
                                         <DataTable.Row key={index}>
-                                            <DataTable.Cell style={[styles.tableTitlePagamento, { maxWidth: 25 }]} textStyle={{ fontSize: 13 }}>{index+1}</DataTable.Cell>
+                                            <DataTable.Cell style={[styles.tableTitlePagamento, { maxWidth: 25 }]} textStyle={{ fontSize: 13 }}>{index + 1}</DataTable.Cell>
                                             <DataTable.Cell style={styles.tableTitlePagamento} textStyle={{ fontSize: 13 }}>{parcelas.forma_pagamento}</DataTable.Cell>
                                             <DataTable.Cell style={styles.tableTitlePagamento} textStyle={{ fontSize: 13 }}>{(parcelas.data_parcela)}</DataTable.Cell>
                                             <DataTable.Cell style={styles.tableTitlePagamento} textStyle={{ fontSize: 13 }}>{`R$${parcelas.valor_parcela}`}</DataTable.Cell>
                                         </DataTable.Row>
+                                        <IconButton
+                                                style={{ width: 25 }}
+                                                icon={(pagamentoParcelado.length > 0) ? "delete" : "plus-circle"}
+                                                iconColor={(pagamentoParcelado.length > 0) ? "red" : "green"}
+                                                size={20}
+                                                onPress={() => {
+                                                    setPagamentoParcelado([]); setParcelas(''); // Chama a mesma função ao pressionar o botão
+                                                } }
+                                                disabled={!(parcelas && formaPagamento)}
+                                        />
+                                        </>
                                     ))}
                                 </DataTable> : null}
                     </Card>

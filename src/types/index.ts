@@ -561,7 +561,7 @@ export type TContaReceber = {
     nome_cliente?: string,
     vencimento_rec?: string,
     valor_rec?: string,
-    valor_pago : string,
+    valor_pago?: string,
     data_emissao?: string,
     n_documento_rec?: string,
     observacoes_rec?: string,
