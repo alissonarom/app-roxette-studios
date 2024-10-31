@@ -1,6 +1,6 @@
 import { useEffect, useState, useContext } from "react";
 import { View, Text, ScrollView } from "react-native";
-import { FinanceiroScreenPorps, Liquidado, RootStackParamList, Status_pedido, TContaReceber, TDespesas, TPedido } from "../../types";
+import { FinanceiroScreenPorps, Liquidado, RootStackParamList, Status_pedido, TContaReceber, TDespesas, TParcelas, TPedido } from "../../types";
 import { ActivityIndicator, Button, Card, DataTable, Divider, List, Snackbar, TextInput} from 'react-native-paper';
 import { styles } from "../styles";
 import { SafeAreaView } from "react-native";
@@ -22,6 +22,7 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
     const [formaPagamento, setFormaPagamento] = useState('');
     const [isLoading, setLoading] = useState(false);
     const [visible, setVisible] = useState(false);
+    const [erroValores, setErroValores] = useState(false);
     const [dataDespesas , setDataDespesas] = useState('')
 
     const states: any = {
@@ -47,7 +48,7 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
     };
 
     const getDespesas = async () => {
-        setLoading(true);
+        
         const headers = {
           'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
           'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
@@ -75,23 +76,15 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
 
         } catch (error) {
           console.error('Erro:', error);
-        } finally {
-          setLoading(false);
         }
         // setDataProdutos(dataProdutoMock);
     };
 
-    const putContaReceber = async (totalNota: string, idPedido: number) => {
-        const valorNotaCalculado: boolean = totalNota === valorPago;
-    
-        const contaReceber: TContaReceber = {
-            valor_pago: valorPago,
-            data_pagamento: new Date(dataPagamento).toISOString().split('T')[0],
-            obs_pagamento: "Pagamento parcial",
-            forma_pagamento: formaPagamento,
-            liquidado_rec: valorNotaCalculado ? Liquidado.Sim : Liquidado.Não,
-        };
-    
+    const putContaReceber = async (totalNota: string, idPedido: number, parcelas: TParcelas[]) => {
+        const valor = parseFloat(totalNota) - calcularTotalParcelasNumerico(parcelas);
+        const valorArredondado = valor.toFixed(2); // Arredonda para 2 casas decimais
+        const valorNotaCalculado: boolean = valorArredondado === parseFloat(valorPago).toFixed(2); // Arredonda valorPago também
+
         try {
             // Busca todas as contas a receber
             const response = await fetch('/api/contas-receber', {
@@ -112,6 +105,19 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
             if (!conta) {
                 throw new Error('Conta a receber não encontrada para o pedido informado.');
             }
+
+            // Incrementa o novo pagamento parcial no array de `parciais` existente
+            const novasParciais = conta.parciais;
+
+        // Atualiza a conta a receber com as novas parciais
+        const contaReceberAtualizada = {
+            parciais: novasParciais,
+            liquidado_rec: valorNotaCalculado ? Liquidado.Não : Liquidado.Sim,
+            valor_pago: valorPago,
+            data_pagamento: new Date(dataPagamento).toISOString().split('T')[0],
+            obs_pagamento: valorNotaCalculado ? "Pagamento final":"Pagamento Parcial",
+            forma_pagamento: formaPagamento,
+        };
     
             // Atualiza a conta a receber filtrada
             const ContaReceberResponse = await fetch(`/api/contas-receber/${conta.id_conta_rec}`, {
@@ -122,7 +128,7 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                     'cache-control': 'no-cache',
                     'content-type': 'application/json',
                 },
-                body: JSON.stringify(contaReceber),
+                body: JSON.stringify(contaReceberAtualizada),
             });
     
             if (!ContaReceberResponse.ok) {
@@ -137,16 +143,28 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
         }
     };
 
-    const putPedido = async (idPedido:number, totalNota:string ) => {
-        const valorNotaCalculado:boolean = totalNota === valorPago
-        
-        const pedidoAlterado = {
-            valor_total_nota: valorNotaCalculado ? '0' : `${parseInt(totalNota) - parseInt(valorPago)}`,
-            status_pedido : valorNotaCalculado ? Status_pedido.Atendido : Status_pedido["Em Aberto"]
-        };
+    const putParcelasPedido = async (idPedido:number, totalNota:string, parcelas: TParcelas[]) => {  
+        const valor = parseFloat(totalNota) - calcularTotalParcelasNumerico(parcelas);
+        const valorArredondado = valor.toFixed(2); // Arredonda para 2 casas decimais
+        const valorNotaCalculado: boolean = valorArredondado === parseFloat(valorPago).toFixed(2); // Arredonda valorPago também
+
+        formatarValorParaReal(calcularTotalParcelasNumerico(parcelas))
+
+        const novaParcela = {
+            data_parcela: new Date(dataPagamento).toISOString().split('T')[0],
+            valor_parcela: valorPago,
+            forma_pagamento:formaPagamento,
+            observacoes_parcela:valorNotaCalculado ? "Pagamento final":"Pagamento Parcial",
+            conta_liquidada:1,
+            valor_pago:valorPago,
+            data_pagamento:new Date(dataPagamento).toISOString().split('T')[0],
+        }
+
+        const pedidoAlterado = [...parcelas, novaParcela];
+
         try {
-                const pedidoResponse = await fetch(`/api/pedidos/${idPedido}`, {
-                    method: 'PUT',
+                const pedidoResponse = await fetch(`/api/pedidos/${idPedido}/parcelas`, {
+                    method: 'POST',
                     headers: {
                         'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
                         'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
@@ -160,42 +178,101 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                     throw new Error('Erro ao atualizar o pedido');
                 }
                 const pedidoAtualizadoResponse = await pedidoResponse.json();
-                console.log('pedidoAtualizadoResponse criado com sucesso:', pedidoAtualizadoResponse);
+                console.log('PARCELA CRIADA COM sUCESSO', pedidoAtualizadoResponse);
 
             } catch (error) {
                 console.error('Erro ao criar contas a pagar:', error);
         }
+        if(valorNotaCalculado){
+            try {
+                const pedidoResponse = await fetch(`/api/pedidos/${idPedido}`, {
+                    method: 'PUT',
+                    headers: {
+                        'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
+                        'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
+                        'cache-control': 'no-cache',
+                        'content-type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        "obs_interno_pedido" : "Pedido pago no App",
+                        "status_pedido" : Status_pedido.Atendido,
+                    }),
+                });
+    
+                if (!pedidoResponse.ok) {
+                    throw new Error('Erro ao atualizar o pedido');
+                }
+                const pedidoAtualizadoResponse = await pedidoResponse.json();
+                console.log('PARCELA CRIADA COM sUCESSO', pedidoAtualizadoResponse);
+    
+            } catch (error) {
+                console.error('Erro ao criar contas a pagar:', error);
+            }
+        }
     };
 
-    const atualizaPedido = async (idPedido: number, totalNota: string) => {
+    const atualizaPedido = async (idPedido: number, totalNota: string, parcelas:TParcelas[] | string) => {
         setLoading(true); // Inicia o loading
-    
-        try {
-            // Chama as duas funções em sequência
-            await putPedido(idPedido, totalNota);
-            await putContaReceber(totalNota, idPedido);
-    
-            // Após o sucesso de ambas as operações
-            setTimeout(() => {
-                setVisible(true);
-                setLoading(false);
-                cancelPagamento();
-            }, 1000);
-    
-            // Se houver contexto de pedidos, atualiza os pedidos
-            if (pedidosContext) {
-                pedidosContext.atualizarPedidos(cliente.id_cliente, vendedor.id_vendedor);
-            }
-    
-        } catch (error) {
-            console.error('Erro ao atualizar pedido ou conta a receber:', error);
-            setLoading(false); // Desativa o loading em caso de erro
+
+        if (typeof parcelas === 'string') {
+            parcelas = [];
         }
+
+        const valor = parseFloat(totalNota) - calcularTotalParcelasNumerico(parcelas)
+
+        if (parseFloat(valorPago) > valor) {
+            setLoading(false); // Desativa o loading
+            // Aqui você pode querer usar um estado para controlar a mensagem
+            setErroValores(true)
+            console.warn('Valor maior que saldo devedor');
+            return; // Sai da função sem executar o restante
+        }
+
+            try {
+                // Chama as duas funções em sequência
+                await putParcelasPedido(idPedido, totalNota, parcelas);
+                await putContaReceber(totalNota, idPedido, parcelas);
+        
+                // Após o sucesso de ambas as operações
+                setTimeout(() => {
+                    setVisible(true);
+                    cancelPagamento();
+                }, 1000);
+    
+                setChecked(false)
+                setFormaPagamento('')
+                setValorPago('')
+                setDataPagamento(new Date())
+        
+                // Se houver contexto de pedidos, atualiza os pedidos
+                if (pedidosContext) {
+                    pedidosContext.atualizarPedidos(cliente.id_cliente, vendedor.id_vendedor);
+                }
+        
+            } catch (error) {
+                console.error('Erro ao atualizar pedido ou conta a receber:', error);
+            }finally{
+                setLoading(false); // Desativa o loading em caso de erro
+            }
     };
 
     const handleChangeTextValorPago = (texto: any) => {
         const valorFormatado = formatarValor(texto);
         setValorPago(valorFormatado)
+    };
+
+    function calcularTotalParcelasNumerico(parcelas: TParcelas[] | string): number {
+        if (!Array.isArray(parcelas) || parcelas.length === 0) {
+          return 0;
+        }
+      
+        return parcelas.reduce((acc: number, parcela: TParcelas) => {
+          return acc + parseFloat(parcela.valor_parcela);
+        }, 0);
+    };
+      
+    function formatarValorParaReal(valor: number): string {
+        return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
     };
     
     return (
@@ -211,7 +288,7 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                     <Text numberOfLines={1} ellipsizeMode="tail" style={{ color: 'white', maxWidth: 150 }}>{vendedor.razao_vendedor}</Text>
                 </View>
             </View>
-            <View style={{alignSelf:'center', flex: pedidosContext?.pedidos.length ? 1 : undefined }}>
+            <View style={{alignSelf:'center'}}>
                 <View style={{display: "flex", justifyContent: "space-between"}}>
                     <Text style={{color: '#145B91', fontWeight: '500', fontSize: 18, marginVertical:10}}>Minhas despesas</Text>
                     <Card style={{backgroundColor: '#FAEBEB', justifyContent: 'center'}}>
@@ -244,7 +321,7 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                                                 description={item.data_pedido}
                                                 titleStyle={{ color: '#145B91', fontWeight: '600' }}
                                                 left={props => <List.Icon {...props} icon={states[item.status_pedido].icon} color={states[item.status_pedido].color} />}
-                                                right={props => <View style={{ display: 'flex', flexDirection: 'row' }}><Text>R$ {parseFloat(item.valor_total_produtos)-parseFloat(item.desconto_pedido)}</Text><List.Icon {...props} icon='chevron-down' color={states[item.status_pedido].color} /></View>}>
+                                                right={props => <View style={{ display: 'flex', flexDirection: 'row' }}><Text>R$ {parseFloat(item.valor_total_nota)-calcularTotalParcelasNumerico(item.parcelas)}</Text><List.Icon {...props} icon='chevron-down' color={states[item.status_pedido].color} /></View>}>
                                                 <View style={styles.viewCardPedido}>
                                                     <View>
                                                         <View style={{ display: 'flex', flexDirection: 'row' }}>
@@ -271,7 +348,7 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                                                         <Text>{item.id_pedido}</Text>
                                                     </View>
                                                 </View>
-                                                <View style={styles.viewCardPedido}>
+                                                <View style={[styles.viewCardPedido, {marginBottom: 0}]}>
                                                 {Array.isArray(item.produtos) && item.produtos.length > 0 ? (
                                                     <DataTable>
                                                         <DataTable.Header>
@@ -298,7 +375,7 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                                                 {Array.isArray(item.parcelas) && item.parcelas.length > 0 ? (
                                                     <DataTable>
                                                         <DataTable.Header>
-                                                            <DataTable.Title style={{ paddingBottom: 0 , maxWidth: 50}} textStyle={{color: '#145B91'}}>Parcelas</DataTable.Title>
+                                                            <DataTable.Title style={{ paddingBottom: 0 , maxWidth: 50}} textStyle={{color: '#145B91'}}>Pagamentos</DataTable.Title>
                                                             <DataTable.Title style={{ justifyContent: 'center', maxWidth: 70, paddingBottom: 0}} textStyle={{color: '#145B91'}}>Data</DataTable.Title>
                                                             <DataTable.Title style={{ justifyContent: 'center', maxWidth: 70, paddingBottom: 0 }} textStyle={{color: '#145B91'}}>Valor</DataTable.Title>
                                                             <DataTable.Title style={{ justifyContent: 'center', maxWidth: 90, paddingBottom: 0 }} textStyle={{color: '#145B91'}}>Forma pgto</DataTable.Title>
@@ -310,10 +387,10 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                                                                 <DataTable.Cell style={{justifyContent: 'center', maxWidth: 70}} textStyle={{fontSize: 10}}>{parcelas.data_parcela}</DataTable.Cell>
                                                                 <DataTable.Cell style={{justifyContent: 'center', maxWidth: 70}} textStyle={{fontSize: 10}}>{`R$ ${Number(parcelas.valor_parcela)}`}</DataTable.Cell>
                                                                 <DataTable.Cell style={{justifyContent: 'center', maxWidth: 90}} textStyle={{fontSize: 10}}>{parcelas.forma_pagamento}</DataTable.Cell>
-                                                                <DataTable.Cell style={{justifyContent: 'center', maxWidth: 60}} textStyle={{fontSize: 10}}>{parcelas.conta_liquidada ? parcelas.conta_liquidada : 'Nao'}</DataTable.Cell>
+                                                                <DataTable.Cell style={{justifyContent: 'center', maxWidth: 60}} textStyle={{fontSize: 10}}>Sim</DataTable.Cell>
                                                             </DataTable.Row>
                                                         ))}
-                                                    </DataTable>) : <Text>{String(item.parcelas)}</Text>}
+                                                    </DataTable>) : <Text style={{justifyContent: 'center', marginVertical: 10}}>Nenhum pagamento parcial para o pedido!</Text>}
                                                 </View>
                                                 {checked ?
                                                     <View style={[styles.cardPanelContent, { marginVertical: 10, backgroundColor: 'white' }]}>
@@ -359,9 +436,13 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                                                         <Text style={styles.textFooter}>Desconto</Text>
                                                         <Text style={{ color: '#ff9090', fontWeight: "600" }}>-R$ {item.desconto_pedido}</Text>
                                                     </View>
+                                                    <View style={styles.subFooter}>
+                                                        <Text style={styles.textFooter}>Valor Pago</Text>
+                                                        <Text style={{ color: '#5aed5a', fontWeight: "600" }}>{formatarValorParaReal(calcularTotalParcelasNumerico(item.parcelas))}</Text>
+                                                    </View>
                                                     <View style={[styles.subFooter, { marginBottom: 10 }]}>
                                                         <Text style={[styles.textFooter, { fontSize: 21 }]}>Total</Text>
-                                                        <Text style={[styles.textFooter, { fontSize: 21 }]}>R$ {parseFloat(item.valor_total_produtos)-parseFloat(item.desconto_pedido)}</Text>
+                                                        <Text style={[styles.textFooter, { fontSize: 21 }]}>R$ {parseFloat(item.valor_total_produtos)-parseFloat(item.desconto_pedido)-calcularTotalParcelasNumerico(item.parcelas)}</Text>
                                                     </View>
                                                     <View style={styles.cardPanelContent}>
                                                         <Button
@@ -370,7 +451,7 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                                                             buttonColor='white'
                                                             textColor="#145B91"
                                                             mode="contained"
-                                                            onPress={() => checked ? atualizaPedido(item.id_ped, item.valor_total_nota) : setChecked(!checked)}
+                                                            onPress={() => checked ? atualizaPedido(item.id_ped, item.valor_total_nota, item.parcelas) : setChecked(!checked)}
                                                             disabled={checked && !(dataPagamento && valorPago && formaPagamento)}
                                                             loading={isLoading}
                                                         >
@@ -395,7 +476,7 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                             ))}
                         </List.Accordion>
                     </List.Section>
-                    : <Text style={{ fontWeight: '600', height: '50%', alignSelf: 'center', color: 'grey', fontSize: 20 }}>Não há pedidos deste cliente</Text>
+                    : <Text style={{ fontWeight: '600', height: '50%', alignSelf: 'center', color: 'grey', fontSize: 20 }}>Não há pedidos em aberto</Text>
                 }
                 {!pedidosContext?.orcamentos ?
 		    	<View style={{height:'50%'}}>
@@ -508,7 +589,7 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                         ))}
                     </List.Accordion>
                 </List.Section>
-                : <Text style={{ fontWeight: '600', height: '50%', alignSelf: 'center', color: 'grey', fontSize: 20 }}>Não há orçamentos deste cliente</Text>
+                : <Text style={{ fontWeight: '600', height: '50%', alignSelf: 'center', color: 'grey', fontSize: 20 }}>Não há orçamentos</Text>
                 }
             </ScrollView>
             <Snackbar
@@ -518,6 +599,14 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                     duration={1000}
                     >
                     <Text style={{ color: 'white'}}>Pagamento feito com sucesso!</Text>
+            </Snackbar>
+            <Snackbar
+                style={{backgroundColor: 'red'}}
+                visible={erroValores}
+                onDismiss={()=>setErroValores(false)}
+                duration={2000}
+                >
+                <Text style={{ color: 'white'}}>Valor maior que saldo devedor</Text>
             </Snackbar>
         </SafeAreaView>
     );

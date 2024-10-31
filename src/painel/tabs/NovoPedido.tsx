@@ -19,7 +19,7 @@ import {
 } from "../../types/index";
 import { PedidosContext } from '../../utils/PedidoContext';
 import { useRoute, RouteProp } from '@react-navigation/native';
-import { dataVendedor, dataClientes } from "../../Mocks/produtoMock";
+// import { dataVendedor, dataClientes } from "../../Mocks/produtoMock";
 // utils
 import { dataFormaPagamento, formatDate, formatarValor } from "../../utils";
 
@@ -38,10 +38,11 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
 
     //pagamento
     const [formaPagamento, setFormaPagamento] = useState('');
-    const [parcelas, setParcelas] = useState('');
+    // const [parcelas, setParcelas] = useState('');
     const [pagamentoParcelado, setPagamentoParcelado] = useState<TParcelas[]>([]);
-    const [valorParcela, setValorParcela] = useState<string>('');
-    const [prazoParcela, setPrazoParcela] = useState(new Date());
+    // const [valorParcela, setValorParcela] = useState<string>('');
+    // const [prazoParcela, setPrazoParcela] = useState(new Date());
+    // const [numeroParcela, setNumeroParcela] = useState(new Date());
 
     //obs
     const [observacao, onChangeobservacao] = useState<string>('');
@@ -67,28 +68,27 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
         setPagamentoParcelado([]);  // Chama a função de atualização de parcelas
     }, [arrayProdutos]);
 
-    const atualizarParcelas = () => {
-        if (!pagamentoParcelado.length && arrayProdutos.length > 0 && (parcelas || formaPagamento)) {
-        const novoArrayParcelas = [];
-        const desconto = totalDescontoProdutos ?? 0;
-        const numParcelas = parcelas ? parseInt(parcelas) : 1;
-        console.log('desconto, numParcelas, numParcelas', desconto, numParcelas, totalProdutos)
-          for (let i = 1; i <= numParcelas; i++) {
-            novoArrayParcelas.push({
-              data_parcela: formatDate(prazo),
-              valor_parcela: String((parseFloat(totalProdutos) - desconto) / numParcelas),
-              forma_pagamento: formaPagamento,
-              observacoes_parcela: observacao || '',
-              conta_liquidada: 0
-            });
-          }
-          console.log('novoArrayParcelas', novoArrayParcelas)
-          setPagamentoParcelado(novoArrayParcelas);
-        } else if (pagamentoParcelado.length) {
-          setPagamentoParcelado([]);
-          setParcelas('');
-        }
-    };
+    // const atualizarParcelas = () => {
+    //     if (!pagamentoParcelado.length && arrayProdutos.length > 0 && parcelas) {
+    //     const novoArrayParcelas = [];
+    //     const desconto = totalDescontoProdutos ?? 0;
+        
+    //       for (let i = 1; i <= parseInt(parcelas); i++) {
+    //         novoArrayParcelas.push({
+    //           data_parcela: formatDate(prazo),
+    //           valor_parcela: String((parseFloat(totalProdutos) - desconto) / parseInt(parcelas)),
+    //           forma_pagamento: formaPagamento,
+    //           observacoes_parcela: observacao || '',
+    //           conta_liquidada: 0
+    //         });
+    //       }
+    //       console.log('novoArrayParcelas', novoArrayParcelas)
+    //       setPagamentoParcelado(novoArrayParcelas);
+    //     } else if (pagamentoParcelado.length) {
+    //       setPagamentoParcelado([]);
+    //       setParcelas('');
+    //     }
+    // };
 
     const getContaBancaria = async () => {
         setLoading(true);
@@ -142,14 +142,15 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
         setArrayProdutos([]);
         setTotalDescontoProdutos(0)
         setFormaPagamento('')
-        setParcelas('')
+        // setParcelas('')
         setPagamentoParcelado([])
         onChangeobservacao('')
         setPrazo(new Date())
         setLoadingPedido(false);
         setLoading(false);
         setVisible(true);
-        setTotalProdutos('')
+        setTotalProdutos(''),
+        setType('')
     };
 
 //GET--------------
@@ -318,48 +319,48 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
         };
     };
     // Função para adicionar as parcelas ao pedido
-    const postParcelas = async (idPedido:number, parcelas:TParcelas[]) => {
-        if (type === 'pedido'){
-            try {
-                const parcelaResponse = await fetch(`/api/pedidos/${idPedido}/parcelas`, {
-                    method: 'POST',
-                    headers: {
-                        'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
-                        'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
-                        'cache-control': 'no-cache',
-                        'content-type': 'application/json',
-                    },
-                    body: JSON.stringify(parcelas),
-                });
-                if (!parcelaResponse.ok) {
-                    throw new Error('Erro ao cadastrar as parcelas no pedido');
-                }
-            } catch (error) {
-                console.error('Erro ao cadastrar as parcelas no pedido:', error);
-                throw error;
-            }
-        };
-        if (type === 'orcamento'){
-            try {
-                const response = await fetch(`/api/orcamentos/${idPedido}/parcelas`, {
-                    method: 'POST',
-                    headers: {
-                        'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
-                        'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
-                        'cache-control': 'no-cache',
-                        'content-type': 'application/json',
-                    },
-                    body: JSON.stringify(parcelas),
-                });
-                if (!response.ok) {
-                    throw new Error('Erro ao cadastrar as parcelas no orcamento');
-                }
-            } catch (error) {
-                console.error('Erro ao cadastrar as parcelas no orcamento:', error);
-                throw error;
-            }
-        }
-    };
+    // const postParcelas = async (idPedido:number, parcelas:TParcelas[]) => {
+    //     if (type === 'pedido'){
+    //         try {
+    //             const parcelaResponse = await fetch(`/api/pedidos/${idPedido}/parcelas`, {
+    //                 method: 'POST',
+    //                 headers: {
+    //                     'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
+    //                     'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
+    //                     'cache-control': 'no-cache',
+    //                     'content-type': 'application/json',
+    //                 },
+    //                 body: JSON.stringify(parcelas),
+    //             });
+    //             if (!parcelaResponse.ok) {
+    //                 throw new Error('Erro ao cadastrar as parcelas no pedido');
+    //             }
+    //         } catch (error) {
+    //             console.error('Erro ao cadastrar as parcelas no pedido:', error);
+    //             throw error;
+    //         }
+    //     };
+    //     if (type === 'orcamento'){
+    //         try {
+    //             const response = await fetch(`/api/orcamentos/${idPedido}/parcelas`, {
+    //                 method: 'POST',
+    //                 headers: {
+    //                     'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
+    //                     'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
+    //                     'cache-control': 'no-cache',
+    //                     'content-type': 'application/json',
+    //                 },
+    //                 body: JSON.stringify(parcelas),
+    //             });
+    //             if (!response.ok) {
+    //                 throw new Error('Erro ao cadastrar as parcelas no orcamento');
+    //             }
+    //         } catch (error) {
+    //             console.error('Erro ao cadastrar as parcelas no orcamento:', error);
+    //             throw error;
+    //         }
+    //     }
+    // };
     // Monta produtos do pedido
     const adicionarProduto = () => {
         if (produto && quantidadeProdutos) {
@@ -443,7 +444,8 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
     try {
         // Cria o pedido
         const idPedido = await postPedido(novoPedido());
-        await criarContaReceber(String(idPedido));
+        console.log('idPedido dentro criarNovoPedido', String(idPedido))
+        await criarContaReceber(idPedido);
 
         // Cadastra os produtos no pedido
         const produtos = arrayProdutos.map((produto) => ({
@@ -460,14 +462,14 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
         await postProdutosPedido(idPedido, produtos);
 
         // Cadastra as parcelas no pedido
-        const parcelas = pagamentoParcelado.map((parcela) => ({
-            data_parcela: parcela.data_parcela,
-            valor_parcela: parcela.valor_parcela,
-            forma_pagamento: parcela.forma_pagamento,
-            observacoes_parcela: parcela.observacoes_parcela,
-            conta_liquidada: parcela.conta_liquidada
-        }));
-        await postParcelas(idPedido, parcelas);
+        // const parcelas = pagamentoParcelado.map((parcela) => ({
+        //     data_parcela: parcela.data_parcela,
+        //     valor_parcela: parcela.valor_parcela,
+        //     forma_pagamento: parcela.forma_pagamento,
+        //     observacoes_parcela: parcela.observacoes_parcela,
+        //     conta_liquidada: parcela.conta_liquidada
+        // }));
+        // await postParcelas(idPedido, parcelas);
 
         // Atualiza pedidos, se necessário
         if (pedidosContext) {
@@ -515,7 +517,7 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                 observacoes_parcela: parcela.observacoes_parcela,
                 conta_liquidada: parcela.conta_liquidada
             }));
-            await postParcelas(idPedido, parcelas);
+            // await postParcelas(idPedido, parcelas);
     
             // Atualiza pedidos, se necessário
             
@@ -554,19 +556,9 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
         setDescontoProdutos(valorFormatado)
     };
 
-    const handleChangeValorParcela = (texto: any) => {
-        const valorFormatado = formatarValor(texto);
-        setValorParcela(valorFormatado)
-    };
-
     const handleChangeQuantidade = (texto: any) => {
         // const valorFormatado = formatarValor(texto);
         setQuantidadeProdutos(texto)
-    };
-
-    const handleChangeParcelas = (texto: any) => {
-        // const valorFormatado = formatarValor(texto);
-        setParcelas(texto)
     };
 
     const handlePostFunction = () => {
@@ -735,13 +727,13 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                         </View>
                     </Card>
                     {/* Pagamento */}
-                    <Card mode="elevated" style={styles.cardPanel}>
+                    {/* <Card mode="elevated" style={styles.cardPanel}>
                             <View style={[styles.cardPanelContent, { justifyContent: 'space-between' }]}>
                                 <Text style={styles.h3}>Pagamento</Text>
-                                <Text style={{ fontSize: 10, alignSelf: 'flex-start', color: formaPagamento && parcelas ? 'green' : 'red' }}>obrigatório</Text>
+                                <Text style={{ fontSize: 10, alignSelf: 'flex-start', color: parcelas ? 'green' : 'red' }}>obrigatório</Text>
                             </View>
-                            <View style={styles.cardPanelContent}>
-                                <Picker
+                            <View style={[styles.cardPanelContent, {maxWidth: 135}]}>
+                                {/* <Picker
                                     dropdownIconColor="#9E9E9E"
                                     placeholder="Forma de pagamento"
                                     style={styles.selectPicker}
@@ -753,7 +745,7 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                                     {dataFormaPagamento.map((item) => {
                                         return <Picker.Item label={item} value={item} key={item} />;
                                     })}
-                                </Picker>
+                                </Picker> 
                                 <View style={styles.cardInputs}>
                                     {<DatePicker date={prazoParcela} setDate={setPrazoParcela} />}
                                 </View>
@@ -761,10 +753,10 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                                     outlineColor='#145B91'
                                     activeOutlineColor='#145B91'
                                     style={{ marginHorizontal: 2, width: 70, backgroundColor: 'white', fontSize: 14, fontFamily: 'Roboto' }}
-                                    value={valorParcela}
-                                    onChangeText={handleChangeValorParcela}
+                                    value={parcelas}
+                                    onChangeText={handleChangeParcelas}
                                     mode="outlined"
-                                    label="Valor"
+                                    label="Nº Parcelas"
                                     keyboardType="numeric"
                                     disabled={type === ''}/>
                                 <IconButton
@@ -773,7 +765,7 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                                     iconColor="green"
                                     size={25}
                                     onPress={() => {atualizarParcelas()}}
-                                    disabled={!(valorParcela && formaPagamento && prazoParcela)} />
+                                    disabled={!(parcelas)} />
                             </View>
                             {pagamentoParcelado.length ?
                                 <DataTable>
@@ -784,27 +776,27 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                                         <DataTable.Title numeric style={styles.tableTitlePagamento}>Valor</DataTable.Title>
                                     </DataTable.Header>
                                     {pagamentoParcelado.map((parcelas, index) => (
-                                        <>
-                                        <DataTable.Row key={index}>
-                                            <DataTable.Cell style={[styles.tableTitlePagamento, { maxWidth: 25 }]} textStyle={{ fontSize: 13 }}>{index + 1}</DataTable.Cell>
-                                            <DataTable.Cell style={styles.tableTitlePagamento} textStyle={{ fontSize: 13 }}>{parcelas.forma_pagamento}</DataTable.Cell>
-                                            <DataTable.Cell style={styles.tableTitlePagamento} textStyle={{ fontSize: 13 }}>{(parcelas.data_parcela)}</DataTable.Cell>
-                                            <DataTable.Cell style={styles.tableTitlePagamento} textStyle={{ fontSize: 13 }}>{`R$${parcelas.valor_parcela}`}</DataTable.Cell>
-                                        </DataTable.Row>
-                                        <IconButton
-                                                style={{ width: 25 }}
-                                                icon={(pagamentoParcelado.length > 0) ? "delete" : "plus-circle"}
-                                                iconColor={(pagamentoParcelado.length > 0) ? "red" : "green"}
-                                                size={20}
-                                                onPress={() => {
-                                                    setPagamentoParcelado([]); setParcelas(''); // Chama a mesma função ao pressionar o botão
-                                                } }
-                                                disabled={!(parcelas && formaPagamento)}
-                                        />
-                                        </>
+                                        <View style={styles.cardPanelContent}>
+                                            <DataTable.Row key={index}>
+                                                <DataTable.Cell style={[styles.tableTitlePagamento, { maxWidth: 25 }]} textStyle={{ fontSize: 13 }}>{index + 1}</DataTable.Cell>
+                                                <DataTable.Cell style={styles.tableTitlePagamento} textStyle={{ fontSize: 13 }}>{parcelas.forma_pagamento}</DataTable.Cell>
+                                                <DataTable.Cell style={styles.tableTitlePagamento} textStyle={{ fontSize: 13 }}>{(parcelas.data_parcela)}</DataTable.Cell>
+                                                <DataTable.Cell style={styles.tableTitlePagamento} textStyle={{ fontSize: 13 }}>{`R$${parcelas.valor_parcela}`}</DataTable.Cell>
+                                            </DataTable.Row>
+                                            <IconButton
+                                                    style={{ width: 25 }}
+                                                    icon={(pagamentoParcelado.length > 0) ? "delete" : "plus-circle"}
+                                                    iconColor={(pagamentoParcelado.length > 0) ? "red" : "green"}
+                                                    size={20}
+                                                    onPress={() => {
+                                                        setPagamentoParcelado([]); setParcelas(''); // Chama a mesma função ao pressionar o botão
+                                                    } }
+                                                    disabled={!(parcelas && formaPagamento)}
+                                            />
+                                        </View>
                                     ))}
                                 </DataTable> : null}
-                    </Card>
+                    </Card> */}
                     {/* Observação */}
                     <Card mode="elevated" style={styles.cardPanel}>
                             <Text style={styles.h3}>Observação</Text>
@@ -838,8 +830,8 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                     </View>
                     <Button
                         style={{ marginHorizontal: 60 }}
-                        disabled={(arrayProdutos.length && pagamentoParcelado.length) ? false : true}
-                        labelStyle={{ fontSize: 15, fontWeight: "600", color: (arrayProdutos.length && pagamentoParcelado.length) ? '#145B91' : 'darkgrey'  }}
+                        disabled={arrayProdutos.length ? false : true}
+                        labelStyle={{ fontSize: 15, fontWeight: "600", color: arrayProdutos.length ? '#145B91' : 'darkgrey'  }}
                         buttonColor='white'
                         textColor="#145B91"
                         mode="contained"
