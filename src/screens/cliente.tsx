@@ -5,6 +5,7 @@ import {Picker} from '@react-native-picker/picker';
 import { Button } from 'react-native-paper';
 import { TClienteResponse } from '../types';
 import { useRoute, RouteProp } from '@react-navigation/native';
+import { headers } from "../utils";
 
 var {width} = Dimensions.get('window');
 
@@ -27,12 +28,6 @@ export default function Cliente({navigation}:ClienteScreenProps) {
 
   const getClientes = async () => {
     setLoading(true);
-    const headers = {
-      'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
-      'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
-      'cache-control': 'no-cache',
-      'content-type': 'application/json',
-    };
     
     let allClientes: TClienteResponse[] = [];
     let offset = 0;
@@ -79,7 +74,7 @@ export default function Cliente({navigation}:ClienteScreenProps) {
   
   function handleSignIn() {
     if(client){
-      return navigation.navigate('Painel', { cliente: client, vendedor: vendedor})
+      return navigation.navigate('Home', { cliente: client, vendedor: vendedor})
     }
   }
 
@@ -113,7 +108,6 @@ export default function Cliente({navigation}:ClienteScreenProps) {
           })}
         </Picker>
         <Button style={styles.button} buttonColor="#1F88D9" mode="contained" onPress={handleSignIn}>Avançar</Button>
-        <Button style={[styles.button, {borderColor:"white", marginVertical: 0}]} textColor="white" mode="outlined" onPress={handleDespesasScreen}>Lançar despesas</Button>
         <Button style={styles.button} textColor="white" mode="text" onPress={changeCliente}>Trocar de vendedor</Button>
         </>)}
       </View>

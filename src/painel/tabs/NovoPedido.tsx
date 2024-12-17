@@ -21,7 +21,8 @@ import { PedidosContext } from '../../utils/PedidoContext';
 import { useRoute, RouteProp } from '@react-navigation/native';
 // import { dataVendedor, dataClientes } from "../../Mocks/produtoMock";
 // utils
-import { dataFormaPagamento, formatDate, formatarValor } from "../../utils";
+import { formatarValor } from "../../utils";
+import { headers } from "../../utils";
 
 const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
     const [produto, setProduto] = useState<TProduto | null>(null);
@@ -68,36 +69,8 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
         setPagamentoParcelado([]);  // Chama a função de atualização de parcelas
     }, [arrayProdutos]);
 
-    // const atualizarParcelas = () => {
-    //     if (!pagamentoParcelado.length && arrayProdutos.length > 0 && parcelas) {
-    //     const novoArrayParcelas = [];
-    //     const desconto = totalDescontoProdutos ?? 0;
-        
-    //       for (let i = 1; i <= parseInt(parcelas); i++) {
-    //         novoArrayParcelas.push({
-    //           data_parcela: formatDate(prazo),
-    //           valor_parcela: String((parseFloat(totalProdutos) - desconto) / parseInt(parcelas)),
-    //           forma_pagamento: formaPagamento,
-    //           observacoes_parcela: observacao || '',
-    //           conta_liquidada: 0
-    //         });
-    //       }
-    //       console.log('novoArrayParcelas', novoArrayParcelas)
-    //       setPagamentoParcelado(novoArrayParcelas);
-    //     } else if (pagamentoParcelado.length) {
-    //       setPagamentoParcelado([]);
-    //       setParcelas('');
-    //     }
-    // };
-
     const getContaBancaria = async () => {
         setLoading(true);
-        const headers = {
-          'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
-          'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
-          'cache-control': 'no-cache',
-          'content-type': 'application/json',
-        };
         try {
           const response = await fetch('/api/contas-bancarias', {
             method: 'GET',
@@ -116,12 +89,6 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
 
     const getCategoFinanceiras = async () => {
         setLoading(true);
-        const headers = {
-          'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
-          'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
-          'cache-control': 'no-cache',
-          'content-type': 'application/json',
-        };
         try {
           const response = await fetch('/api/categorias-financeiras', {
             method: 'GET',
@@ -154,29 +121,25 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
     };
 
 //GET--------------
-    const getProdutos = async () => {
-        setLoading(true);
-        const headers = {
-          'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
-          'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
-          'cache-control': 'no-cache',
-          'content-type': 'application/json',
-        };
-        try {
-          const response = await fetch('/api/produtos', {
+const getProdutos = async () => {
+    setLoading(true);
+    try {
+        const response = await fetch('/api/produtos', {
             method: 'GET',
             headers,
-          });
-      
-          const json = await response.json();
-          setDataProdutos(json.data);
-        } catch (error) {
-          console.error('Erro:', error);
-        } finally {
-          setLoading(false);
-        }
-        // setDataProdutos(dataProdutoMock);
-    };
+        });
+
+        const json = await response.json();
+        console.log('json', json)
+        const produtosFiltrados = json.data.filter((produto: { tipo_produto: string; }) => produto.tipo_produto === "Produto");
+        setDataProdutos(produtosFiltrados);
+    } catch (error) {
+        console.error('Erro:', error);
+    } finally {
+        setLoading(false);
+    }
+};
+
 
     // Monta pedido
     const novoPedido = () => {
@@ -192,13 +155,14 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
               prazo_entrega: new Date(prazo).toISOString().split('T')[0], // Prazo de entrega (Dias)
               referencia_pedido: null, // Referência do pedido
               obs_pedido: observacao, // Observações do pedido
-              obs_interno_pedido: '', // Observação interna do pedido
-              status_pedido: Status_pedido["Em Aberto"], // Status do pedido
+              obs_interno_pedido: type === 'troca' ? 'Pedido de troca':'', // Observação interna do pedido
+              status_pedido: type === 'troca' ? Status_pedido["Atendido"]:Status_pedido["Em Aberto"], // Status do pedido
               estoque_pedido: Estoque_pedido.Não, // Estoque lançado (Sim/Não)
               contas_pedido: Conta_lancada.Sim, // Contas lançadas (Sim/Não)
               valor_total_produtos: totalProdutos
             };
     };
+    
     const novoOrcamento = () => {
             return {
               id_cliente: cliente.id_cliente, // ID do cliente 
@@ -223,12 +187,7 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
     try {
         const pedidoResponse = await fetch('/api/pedidos', {
             method: 'POST',
-            headers: {
-                'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
-                'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
-                'cache-control': 'no-cache',
-                'content-type': 'application/json',
-            },
+            headers,
             body: JSON.stringify(novoPedido),
         });
         if (!pedidoResponse.ok) {
@@ -241,16 +200,12 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
         throw error;
     }
     };
+
     const postOrcamento = async (novoOrcamento:TOrcamento) => {
         try {
             const pedidoResponse = await fetch('/api/orcamentos', {
                 method: 'POST',
-                headers: {
-                    'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
-                    'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
-                    'cache-control': 'no-cache',
-                    'content-type': 'application/json',
-                },
+                headers,
                 body: JSON.stringify(novoOrcamento),
             });
             if (!pedidoResponse.ok) {
@@ -262,18 +217,14 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
             console.error('Erro ao criar o orçamento:', error);
             throw error;
         }
-        };
+    };
+
     // Função para adicionar os produtos ao pedido
     const postProdutosPedido = async (idPedido:number, produtos:TProdutoPedido[]) => {
             try {
                     const response = await fetch(`/api/pedidos/${idPedido}/produtos`, {
                         method: 'POST',
-                        headers: {
-                            'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
-                            'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
-                            'cache-control': 'no-cache',
-                            'content-type': 'application/json',
-                        },
+                        headers,
                         body: JSON.stringify(produtos),
                     });
                 if (!response.ok) {
@@ -281,8 +232,6 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                     throw new Error('Erro ao cadastrar os produtos no pedido');
                 }
                 const produtosData = await response.json(); // Espera a resolução da Promise
-                console.log('Produtos cadastrados com sucesso no pedido:', idPedido);
-                console.log('produtosResponse:', produtosData); // Agora `produtosData` contém o objeto resolvido
                 
             } catch (error) {
                 console.error('Erro ao cadastrar os produtos no pedido:', error);
@@ -290,18 +239,13 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
            
         };
     };
+
     // Função para adicionar os produtos ao pedido
     const postProdutosOrcamento = async (idPedido:number, produtos:TProdutoPedido[]) => {
-        console.log('entrou na função postProdutosOrcamento')
         try {
             const response = await fetch(`/api/orcamentos/${idPedido}/produtos`, {
                 method: 'POST',
-                headers: {
-                    'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
-                    'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
-                    'cache-control': 'no-cache',
-                    'content-type': 'application/json',
-                },
+                headers,
                 body: JSON.stringify(produtos),
             });
                 if (!response.ok) {
@@ -309,8 +253,6 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                     throw new Error('Erro ao cadastrar os produtos no orcamento');
                 }
                 const produtosData = await response.json(); // Espera a resolução da Promise
-                console.log('Produtos cadastrados com sucesso no orcamento:', idPedido);
-                console.log('produtosResponse:', produtosData); // Agora `produtosData` contém o objeto resolvido
                 
         } catch (error) {
             console.error('Erro ao cadastrar os produtos no orcamento:', error);
@@ -318,49 +260,7 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
 
         };
     };
-    // Função para adicionar as parcelas ao pedido
-    // const postParcelas = async (idPedido:number, parcelas:TParcelas[]) => {
-    //     if (type === 'pedido'){
-    //         try {
-    //             const parcelaResponse = await fetch(`/api/pedidos/${idPedido}/parcelas`, {
-    //                 method: 'POST',
-    //                 headers: {
-    //                     'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
-    //                     'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
-    //                     'cache-control': 'no-cache',
-    //                     'content-type': 'application/json',
-    //                 },
-    //                 body: JSON.stringify(parcelas),
-    //             });
-    //             if (!parcelaResponse.ok) {
-    //                 throw new Error('Erro ao cadastrar as parcelas no pedido');
-    //             }
-    //         } catch (error) {
-    //             console.error('Erro ao cadastrar as parcelas no pedido:', error);
-    //             throw error;
-    //         }
-    //     };
-    //     if (type === 'orcamento'){
-    //         try {
-    //             const response = await fetch(`/api/orcamentos/${idPedido}/parcelas`, {
-    //                 method: 'POST',
-    //                 headers: {
-    //                     'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
-    //                     'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
-    //                     'cache-control': 'no-cache',
-    //                     'content-type': 'application/json',
-    //                 },
-    //                 body: JSON.stringify(parcelas),
-    //             });
-    //             if (!response.ok) {
-    //                 throw new Error('Erro ao cadastrar as parcelas no orcamento');
-    //             }
-    //         } catch (error) {
-    //             console.error('Erro ao cadastrar as parcelas no orcamento:', error);
-    //             throw error;
-    //         }
-    //     }
-    // };
+    
     // Monta produtos do pedido
     const adicionarProduto = () => {
         if (produto && quantidadeProdutos) {
@@ -377,12 +277,12 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
           setTotalProdutos(String(parseFloat(totalProdutos || "0") + (parseFloat(quantidadeProdutos || "0") * parseFloat(produto.valor_produto || "0"))));
             setTotalDescontoProdutos(totalDescontoProdutos + (descontoProdutos ? parseFloat(descontoProdutos): 0));
             setArrayProdutos((prevArray) => [...prevArray, novoProduto]);
-            console.log()
         }
         setProduto(null); // Reset Picker
         setQuantidadeProdutos('');
         setDescontoProdutos('');
     };
+
     //formata Nome vendedor
     function formatarNomeCliente(nomeCliente:string) {
         const nomes = nomeCliente.split(' ');
@@ -414,29 +314,23 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
             valor_juros : "00.00",
             valor_desconto : String(totalDescontoProdutos)
         };
-        console.log('despesa no criarContaReceber', despesa)
         try {
             const ContaReceberResponse = await fetch(`/api/contas-receber`, {
                 method: 'POST',
-                headers: {
-                    'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
-                    'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
-                    'cache-control': 'no-cache',
-                    'content-type': 'application/json',
-                },
+                headers,
                 body: JSON.stringify(despesa),
             });
             if (!ContaReceberResponse.ok) {
                 throw new Error('Erro ao cadastrar Conta Receber');
             }
             const ContaReceber = await ContaReceberResponse.json();
-            console.log('ContaReceber criado com sucesso:', ContaReceber);
-            return ContaReceber.data[0].id_conta_rec; // Retorna o ID da receita criada
+            return ContaReceber.data.id_conta_rec; // Retorna o ID da receita criada
     
         } catch (error) {
             console.error('Erro ao criar contas a receber:', error);
         }
     };
+
     // Função principal para criar o pedido, cadastrar produtos e parcelas
     const criaNovoPedido = async () => {
     setLoading(true);
@@ -444,7 +338,6 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
     try {
         // Cria o pedido
         const idPedido = await postPedido(novoPedido());
-        console.log('idPedido dentro criarNovoPedido', String(idPedido))
         await criarContaReceber(idPedido);
 
         // Cadastra os produtos no pedido
@@ -460,16 +353,6 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
             peso_liq_produto: produto.peso_liq_produto ? parseFloat(produto.peso_liq_produto).toFixed(2) : undefined,
         }));
         await postProdutosPedido(idPedido, produtos);
-
-        // Cadastra as parcelas no pedido
-        // const parcelas = pagamentoParcelado.map((parcela) => ({
-        //     data_parcela: parcela.data_parcela,
-        //     valor_parcela: parcela.valor_parcela,
-        //     forma_pagamento: parcela.forma_pagamento,
-        //     observacoes_parcela: parcela.observacoes_parcela,
-        //     conta_liquidada: parcela.conta_liquidada
-        // }));
-        // await postParcelas(idPedido, parcelas);
 
         // Atualiza pedidos, se necessário
         if (pedidosContext) {
@@ -493,7 +376,6 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
             const idPedido = await postOrcamento(novoOrcamento());
             // await criarContaReceber(String(idPedido));
             
-            console.log('idPedido', idPedido)
             // Cadastra os produtos no pedido
             const produtos = arrayProdutos.map((produto) => ({
                 id_produto: produto.id_produto,
@@ -562,7 +444,7 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
     };
 
     const handlePostFunction = () => {
-        if (type === 'pedido'){
+        if (type === 'pedido' || 'troca'){
             criaNovoPedido();
         }else if(type === 'orcamento'){
             criaNovoOrcamento();
@@ -586,7 +468,7 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
             <View>
                 <ActivityIndicator size={'large'} color="#145B91"/>
                 {isLoadingPedido ? (
-                <Text style={[styles.h3, {alignSelf:'center'}]}>Criando seu {type} </Text>
+                <Text style={[styles.h3, {alignSelf:'center'}]}>Criando {type} </Text>
                 ): null
             }
             </View>
@@ -598,7 +480,7 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                             <Text style={styles.h3}>Selecione o tipo  </Text>
                             <Text style={{ fontSize: 10, alignSelf: 'flex-start', color: type ? 'green' : 'red' }}>obrigatório</Text>
                         </View>
-                        <View style={[styles.cardPanelContent, {justifyContent: 'space-around'}]}>
+                        <View style={[styles.cardPanelContent, {justifyContent: 'space-around', flexDirection: 'column'}]}>
                             <Button
                                 style={{ marginVertical: 5, borderColor: '#145B91' }}
                                 labelStyle={{ fontSize: 15, fontWeight: "600" }}
@@ -618,6 +500,16 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                                 onPress={()=> setType('orcamento')}
                             >       
                                 Criar Orçamento
+                            </Button>
+                            <Button
+                                style={{ marginVertical: 5, borderColor: '#145B91' }}
+                                labelStyle={{ fontSize: 15, fontWeight: "600" }}
+                                buttonColor={type === 'troca' ? '#145B91' : 'white'}
+                                textColor={type === 'troca' ? 'white' : '#145B91'}
+                                mode={type === 'troca' ? "contained" : 'outlined'}
+                                onPress={()=> setType('troca')}
+                            >       
+                                Troca
                             </Button>
                         </View>
                     </Card>
@@ -726,77 +618,6 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
                             </View>
                         </View>
                     </Card>
-                    {/* Pagamento */}
-                    {/* <Card mode="elevated" style={styles.cardPanel}>
-                            <View style={[styles.cardPanelContent, { justifyContent: 'space-between' }]}>
-                                <Text style={styles.h3}>Pagamento</Text>
-                                <Text style={{ fontSize: 10, alignSelf: 'flex-start', color: parcelas ? 'green' : 'red' }}>obrigatório</Text>
-                            </View>
-                            <View style={[styles.cardPanelContent, {maxWidth: 135}]}>
-                                {/* <Picker
-                                    dropdownIconColor="#9E9E9E"
-                                    placeholder="Forma de pagamento"
-                                    style={styles.selectPicker}
-                                    selectedValue={formaPagamento}
-                                    onValueChange={(itemValue) => { setFormaPagamento(itemValue); } }
-                                    enabled={arrayProdutos.length > 0}
-                                >
-                                    <Picker.Item label="Forma de pagamento" />
-                                    {dataFormaPagamento.map((item) => {
-                                        return <Picker.Item label={item} value={item} key={item} />;
-                                    })}
-                                </Picker> 
-                                <View style={styles.cardInputs}>
-                                    {<DatePicker date={prazoParcela} setDate={setPrazoParcela} />}
-                                </View>
-                                <TextInput
-                                    outlineColor='#145B91'
-                                    activeOutlineColor='#145B91'
-                                    style={{ marginHorizontal: 2, width: 70, backgroundColor: 'white', fontSize: 14, fontFamily: 'Roboto' }}
-                                    value={parcelas}
-                                    onChangeText={handleChangeParcelas}
-                                    mode="outlined"
-                                    label="Nº Parcelas"
-                                    keyboardType="numeric"
-                                    disabled={type === ''}/>
-                                <IconButton
-                                    style={{ width: 25 }}
-                                    icon={"plus-circle"}
-                                    iconColor="green"
-                                    size={25}
-                                    onPress={() => {atualizarParcelas()}}
-                                    disabled={!(parcelas)} />
-                            </View>
-                            {pagamentoParcelado.length ?
-                                <DataTable>
-                                    <DataTable.Header>
-                                        <DataTable.Title style={[styles.tableTitlePagamento, { maxWidth: 25 }]}>Nº</DataTable.Title>
-                                        <DataTable.Title numeric style={styles.tableTitlePagamento}>Forma Pgto</DataTable.Title>
-                                        <DataTable.Title numeric style={styles.tableTitlePagamento}>Data</DataTable.Title>
-                                        <DataTable.Title numeric style={styles.tableTitlePagamento}>Valor</DataTable.Title>
-                                    </DataTable.Header>
-                                    {pagamentoParcelado.map((parcelas, index) => (
-                                        <View style={styles.cardPanelContent}>
-                                            <DataTable.Row key={index}>
-                                                <DataTable.Cell style={[styles.tableTitlePagamento, { maxWidth: 25 }]} textStyle={{ fontSize: 13 }}>{index + 1}</DataTable.Cell>
-                                                <DataTable.Cell style={styles.tableTitlePagamento} textStyle={{ fontSize: 13 }}>{parcelas.forma_pagamento}</DataTable.Cell>
-                                                <DataTable.Cell style={styles.tableTitlePagamento} textStyle={{ fontSize: 13 }}>{(parcelas.data_parcela)}</DataTable.Cell>
-                                                <DataTable.Cell style={styles.tableTitlePagamento} textStyle={{ fontSize: 13 }}>{`R$${parcelas.valor_parcela}`}</DataTable.Cell>
-                                            </DataTable.Row>
-                                            <IconButton
-                                                    style={{ width: 25 }}
-                                                    icon={(pagamentoParcelado.length > 0) ? "delete" : "plus-circle"}
-                                                    iconColor={(pagamentoParcelado.length > 0) ? "red" : "green"}
-                                                    size={20}
-                                                    onPress={() => {
-                                                        setPagamentoParcelado([]); setParcelas(''); // Chama a mesma função ao pressionar o botão
-                                                    } }
-                                                    disabled={!(parcelas && formaPagamento)}
-                                            />
-                                        </View>
-                                    ))}
-                                </DataTable> : null}
-                    </Card> */}
                     {/* Observação */}
                     <Card mode="elevated" style={styles.cardPanel}>
                             <Text style={styles.h3}>Observação</Text>

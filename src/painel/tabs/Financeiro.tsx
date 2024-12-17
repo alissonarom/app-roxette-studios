@@ -9,7 +9,7 @@ import { useRoute, RouteProp } from "@react-navigation/native";
 import DatePicker from "../../components/datePicker";
 import { Picker } from "@react-native-picker/picker";
 import { dataFormaPagamento, formatarValor } from "../../utils";
-import { dataClientes, dataVendedor, dataPedido } from "../../Mocks/produtoMock";
+import { headers } from "../../utils";
 
 const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'Pedido'>>();
@@ -49,12 +49,6 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
 
     const getDespesas = async () => {
         
-        const headers = {
-          'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
-          'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
-          'cache-control': 'no-cache',
-          'content-type': 'application/json',
-        };
         try {
           const response = await fetch('/api/contas-pagar', {
             method: 'GET',
@@ -89,12 +83,7 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
             // Busca todas as contas a receber
             const response = await fetch('/api/contas-receber', {
                 method: 'GET',
-                headers: {
-                    'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
-                    'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
-                    'cache-control': 'no-cache',
-                    'content-type': 'application/json',
-                },
+                headers
             });
     
             const json = await response.json();
@@ -122,12 +111,7 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
             // Atualiza a conta a receber filtrada
             const ContaReceberResponse = await fetch(`/api/contas-receber/${conta.id_conta_rec}`, {
                 method: 'PUT',
-                headers: {
-                    'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
-                    'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
-                    'cache-control': 'no-cache',
-                    'content-type': 'application/json',
-                },
+                headers,
                 body: JSON.stringify(contaReceberAtualizada),
             });
     
@@ -136,7 +120,6 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
             }
     
             const contaAtualizada = await ContaReceberResponse.json();
-            console.log('Conta Receber atualizada com sucesso:', contaAtualizada);
     
         } catch (error) {
             console.error('Erro ao buscar ou atualizar contas a receber:', error);
@@ -165,12 +148,7 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
         try {
                 const pedidoResponse = await fetch(`/api/pedidos/${idPedido}/parcelas`, {
                     method: 'POST',
-                    headers: {
-                        'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
-                        'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
-                        'cache-control': 'no-cache',
-                        'content-type': 'application/json',
-                    },
+                    headers,
                     body: JSON.stringify(pedidoAlterado),
                 });
 
@@ -178,7 +156,6 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                     throw new Error('Erro ao atualizar o pedido');
                 }
                 const pedidoAtualizadoResponse = await pedidoResponse.json();
-                console.log('PARCELA CRIADA COM sUCESSO', pedidoAtualizadoResponse);
 
             } catch (error) {
                 console.error('Erro ao criar contas a pagar:', error);
@@ -187,12 +164,7 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
             try {
                 const pedidoResponse = await fetch(`/api/pedidos/${idPedido}`, {
                     method: 'PUT',
-                    headers: {
-                        'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
-                        'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
-                        'cache-control': 'no-cache',
-                        'content-type': 'application/json',
-                    },
+                    headers,
                     body: JSON.stringify({
                         "obs_interno_pedido" : "Pedido pago no App",
                         "status_pedido" : Status_pedido.Atendido,
@@ -203,7 +175,6 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                     throw new Error('Erro ao atualizar o pedido');
                 }
                 const pedidoAtualizadoResponse = await pedidoResponse.json();
-                console.log('PARCELA CRIADA COM sUCESSO', pedidoAtualizadoResponse);
     
             } catch (error) {
                 console.error('Erro ao criar contas a pagar:', error);

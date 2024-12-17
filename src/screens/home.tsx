@@ -1,16 +1,16 @@
 import React from 'react';
 import { View, StyleSheet,Text } from "react-native";
 import { HomeScreenProps, RootStackParamList } from '../types';
-import { Avatar, Card, IconButton } from 'react-native-paper';
+import { Avatar, Card, Button } from 'react-native-paper';
 import { useRoute, RouteProp } from '@react-navigation/native';
 
 export default function Home({navigation}:HomeScreenProps) {
   const route = useRoute<RouteProp<RootStackParamList, 'Home'>>();
-  const { vendedor } = route.params || {};
+  const { vendedor, cliente } = route.params || {};
 
   function handleClienteScreen() {
     if(vendedor){
-      return navigation.navigate('Cliente', {vendedor: vendedor})
+      return navigation.navigate('Painel', {cliente: cliente, vendedor: vendedor})
     }
   }
 
@@ -19,7 +19,17 @@ export default function Home({navigation}:HomeScreenProps) {
       return navigation.navigate('Despesas', {vendedor: vendedor})
     }
   }
-      
+
+  function handleBaixaScreen() {
+    if(vendedor){
+      return navigation.navigate('Baixa', {cliente: cliente, vendedor: vendedor})
+    }
+  }
+
+  function changeCliente() {
+    return navigation.navigate('Cliente', {vendedor: vendedor})
+} 
+  
     return (
       <View style={styles.container}>
         <Text style={styles.text}>Olá {vendedor ? vendedor.razao_vendedor.split(' ')[0] : ''}!</Text>
@@ -27,7 +37,7 @@ export default function Home({navigation}:HomeScreenProps) {
           <Card onPress={() => {handleClienteScreen()}} mode='contained' style={{backgroundColor: 'white', marginVertical: 10}}>
             <Card.Title
               title="Iniciar venda"
-              titleVariant={'titleLarge'}
+              titleVariant={'titleMedium'}
               leftStyle={{backgroundColor:'white'}}
               titleStyle={{color:'#145B91'}}
               left={(props) => <Avatar.Icon {...props} icon="account-check" style={{backgroundColor: '#145B91'}} color='white'/>}
@@ -36,12 +46,22 @@ export default function Home({navigation}:HomeScreenProps) {
           <Card onPress={() => {handleDespesasScreen()}} mode='contained' style={{backgroundColor: 'white', marginVertical: 10}}>
             <Card.Title
               title="Lançar despesas"
-              titleVariant={'titleLarge'}
+              titleVariant={'titleMedium'}
               leftStyle={{backgroundColor:'white'}}
               titleStyle={{color:'#145B91'}}
               left={(props) => <Avatar.Icon {...props} icon="account-arrow-down" style={{backgroundColor: '#145B91'}} color='white'/>}
             />
           </Card>
+          <Card onPress={() => {handleBaixaScreen()}} mode='contained' style={{backgroundColor: 'white', marginVertical: 10}}>
+            <Card.Title
+              title="Confirmar entrega"
+              titleVariant={'titleMedium'}
+              leftStyle={{backgroundColor:'white'}}
+              titleStyle={{color:'#145B91'}}
+              left={(props) => <Avatar.Icon {...props} icon="file-document-edit" style={{backgroundColor: '#145B91'}} color='white'/>}
+            />
+          </Card>
+          <Button style={styles.button} textColor="white" mode="text" onPress={changeCliente}>Trocar de cliente</Button>
         </View>
       </View>
     );
@@ -53,6 +73,13 @@ export const styles = StyleSheet.create({
       justifyContent: "center",
       padding: 32,
       backgroundColor: "#145B91"
+    },
+    button: {
+      height: 50,
+      borderRadius: 5,
+      justifyContent: "center",
+      marginHorizontal: 20,
+      marginVertical:10
     },
     text: {
       fontSize: 20,

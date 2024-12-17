@@ -53,3 +53,10 @@ export const formatarValor = (valor: string) => {
 
     return valorFormatado; // Retorna uma string formatada com 2 casas decimais
 };
+
+export const headers = {
+    'access-token': 'UOTGAISHUNMBfPNRDZHKSBLLBUPdCc',
+    'secret-access-token': 'UXkvL5o4lzbgJWXZPHAfXYMDzX9WTy',
+    'cache-control': 'no-cache',
+    'content-type': 'application/json',
+  };

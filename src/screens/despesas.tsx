@@ -8,7 +8,7 @@ import DatePicker from '../components/datePicker'
 import {Picker} from '@react-native-picker/picker';
 import { useRoute, RouteProp } from '@react-navigation/native';
 // utils
-import { truncateText, dataFormaPagamento, formatDate, formatarValor } from "../utils";
+import { truncateText, dataFormaPagamento, formatDate, formatarValor, headers } from "../utils";
 
 export default function Despesas({navigation}:DespesasScreenPorps) {
     const [checked, setChecked] = useState(false);
@@ -62,12 +62,6 @@ export default function Despesas({navigation}:DespesasScreenPorps) {
     //GET conta bancaria
     const getContaBancaria = async () => {
         setLoading(true);
-        const headers = {
-          'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
-          'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
-          'cache-control': 'no-cache',
-          'content-type': 'application/json',
-        };
         try {
           const response = await fetch('/api/contas-bancarias', {
             method: 'GET',
@@ -85,12 +79,7 @@ export default function Despesas({navigation}:DespesasScreenPorps) {
     };
     const getCentroCusto = async () => {
         setLoading(true);
-        const headers = {
-          'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
-          'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
-          'cache-control': 'no-cache',
-          'content-type': 'application/json',
-        };
+        
         try {
           const response = await fetch('/api/centros-custo', {
             method: 'GET',
@@ -158,12 +147,6 @@ export default function Despesas({navigation}:DespesasScreenPorps) {
     try {
         const despesaResponse = await fetch(`/api/contas-pagar`, {
             method: 'POST',
-            headers: {
-                'access-token': 'UHUUVNLSbSSbCbIUMdAaMADRPfaYab',
-                'secret-access-token': 'W8J1kLAGNDlIwzPkaM2Ht78Mo4h7MG',
-                'cache-control': 'no-cache',
-                'content-type': 'application/json',
-            },
             body: JSON.stringify(despesa),
         });
         if (!despesaResponse.ok) {
@@ -172,7 +155,6 @@ export default function Despesas({navigation}:DespesasScreenPorps) {
         const data = await despesaResponse.json();
         
         // Supondo que a data esteja em um campo chamado "data" no response
-        console.log('Data do response:', data.data);
         setVisible(true);
 
     } catch (error) {
