@@ -10,6 +10,7 @@ import DatePicker from "../../components/datePicker";
 import { Picker } from "@react-native-picker/picker";
 import { dataFormaPagamento, formatarValor } from "../../utils";
 import { headers } from "../../utils";
+import React from "react";
 
 const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'Pedido'>>();
@@ -17,6 +18,8 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
     
 	const pedidosContext = useContext(PedidosContext);
     const [checked, setChecked] = useState(false);
+    const [contasBancarias, setContasBancarias] = useState<any[]>([]);
+    const [tipoConta, setTipoConta] = useState('');
     const [dataPagamento, setDataPagamento] = useState(new Date());
     const [valorPago, setValorPago] = useState('');
     const [formaPagamento, setFormaPagamento] = useState('');
@@ -34,10 +37,11 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
 
 	useEffect(() => {
 		if (pedidosContext) {
-		  pedidosContext.atualizarPedidos(cliente.id_cliente, vendedor.id_vendedor);
-		  pedidosContext.atualizarOrcamentos(cliente.id_cliente, vendedor.id_vendedor);
+		  pedidosContext?.atualizarPedidos(cliente.id_cliente, vendedor.id_vendedor);
+		  pedidosContext?.atualizarOrcamentos(cliente.id_cliente, vendedor.id_vendedor);
 		}
         getDespesas()
+        getContasBancárias()
 	}, []);
 
     const cancelPagamento = () => {
@@ -72,6 +76,24 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
           console.error('Erro:', error);
         }
         // setDataProdutos(dataProdutoMock);
+    };
+
+    const getContasBancárias = async () => {
+        try {
+          const response = await fetch('/api/contas-bancarias', {
+            method: 'GET',
+            headers,
+          });
+      
+          const json = await response.json();
+
+        // Define a soma total no estado
+        setContasBancarias((json.data));
+        console.log('contas-bancarias',json)
+
+        } catch (error) {
+          console.error('Erro:', error);
+        }
     };
 
     const putContaReceber = async (totalNota: string, idPedido: number, parcelas: TParcelas[]) => {
@@ -137,7 +159,7 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
             data_parcela: new Date(dataPagamento).toISOString().split('T')[0],
             valor_parcela: valorPago,
             forma_pagamento:formaPagamento,
-            observacoes_parcela:valorNotaCalculado ? "Pagamento final":"Pagamento Parcial",
+            observacoes_parcela:valorNotaCalculado ? `Pagamento final - Tipo de conta: ${tipoConta}`: `Pagamento parcial - Tipo de conta: ${tipoConta}`,
             conta_liquidada:1,
             valor_pago:valorPago,
             data_pagamento:new Date(dataPagamento).toISOString().split('T')[0],
@@ -271,11 +293,11 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                 </View>
             </View>
             <ScrollView style={[styles.scrollView, {marginTop: 20}]}>
-                {!pedidosContext ?
+                {pedidosContext?.isLoading ?
                 <View style={{height:'50%'}}>
                     <ActivityIndicator size={'large'} color="#145B91"/>
                 </View>
-                : pedidosContext.pedidos.length ?
+                : pedidosContext?.pedidos.length ?
                     <List.Section>
                         <List.Accordion
                             title="Pedidos"
@@ -294,7 +316,7 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                                                 left={props => <List.Icon {...props} icon={states[item.status_pedido].icon} color={states[item.status_pedido].color} />}
                                                 right={props => <View style={{ display: 'flex', flexDirection: 'row' }}><Text>R$ {parseFloat(item.valor_total_nota)-calcularTotalParcelasNumerico(item.parcelas)}</Text><List.Icon {...props} icon='chevron-down' color={states[item.status_pedido].color} /></View>}>
                                                 <View style={styles.viewCardPedido}>
-                                                    <View>
+                                                    <View style={{ flexShrink: 1 }}>
                                                         <View style={{ display: 'flex', flexDirection: 'row' }}>
                                                             <Text style={{ fontWeight: '600' }}>Cliente: </Text>
                                                             <Text
@@ -364,39 +386,57 @@ const Financeiro: React.FC<FinanceiroScreenPorps> = () => {
                                                     </DataTable>) : <Text style={{justifyContent: 'center', marginVertical: 10}}>Nenhum pagamento parcial para o pedido!</Text>}
                                                 </View>
                                                 {checked ?
-                                                    <View style={[styles.cardPanelContent, { marginVertical: 10, backgroundColor: 'white' }]}>
-                                                        <View style={styles.cardInputs}>
-                                                            <Text>Data de pagamento</Text>
-                                                            <DatePicker date={dataPagamento} setDate={setDataPagamento} />
-                                                        </View>
-                                                        <View style={styles.cardInputs}>
-                                                            <Text>Valor pago</Text>
-                                                            <TextInput
-                                                                outlineColor='#145B91'
-                                                                activeOutlineColor='#145B91'
-                                                                mode="outlined"
-                                                                label="Valor pago"
-                                                                style={{ flexGrow: 1, backgroundColor: 'white', fontSize: 14, fontFamily: 'Roboto', marginTop: 19 }}
-                                                                value={valorPago}
-                                                                onChangeText={handleChangeTextValorPago}
-                                                                keyboardType="numeric" />
-                                                        </View>
-                                                        <View style={styles.cardInputs}>
-                                                            <Text>Forma de pagamento</Text>
-                                                            <Picker
-                                                                dropdownIconColor="#9E9E9E"
-                                                                placeholder="Forma de pagamento"
-                                                                style={styles.selectPicker}
-                                                                selectedValue={formaPagamento}
-                                                                onValueChange={(itemValue) => { setFormaPagamento(itemValue); } }
-                                                            >
-                                                                <Picker.Item label="Forma de pagamento" />
-                                                                {dataFormaPagamento.map((item) => {
-                                                                    return <Picker.Item label={item} value={item} key={item} />;
-                                                                })}
-                                                            </Picker>
-                                                        </View>
-                                                    </View> : null}
+                                                <>
+                                                <View style={[styles.cardPanelContent, {  marginBottom: 10, backgroundColor: 'white', paddingVertical: 10, marginTop: -1 }]}>
+                                                    <View style={styles.cardInputs}>
+                                                        <Text>Data de pagamento</Text>
+                                                        <DatePicker date={dataPagamento} setDate={setDataPagamento} />
+                                                    </View>
+                                                    <View style={[styles.cardInputs, { justifyContent: 'space-between' }]}>
+                                                        <Text>Valor pago</Text>
+                                                        <TextInput
+                                                            outlineColor='#145B91'
+                                                            activeOutlineColor='#145B91'
+                                                            mode="outlined"
+                                                            label="Valor pago"
+                                                            style={{ flexShrink: 1, backgroundColor: 'white', fontSize: 14, fontFamily: 'Roboto' }}
+                                                            value={valorPago}
+                                                            onChangeText={handleChangeTextValorPago}
+                                                            keyboardType="numeric" />
+                                                    </View>
+                                                </View>
+                                                <View style={[styles.cardPanelContent, { marginBottom: 10, backgroundColor: 'white', paddingVertical: 10, justifyContent: 'space-between', marginTop: -15 }]}>
+                                                    <View style={[styles.cardInputs, {flexGrow: 1}]}>
+                                                        <Text>Forma de pagamento</Text>
+                                                        <Picker
+                                                            dropdownIconColor="#9E9E9E"
+                                                            placeholder="Forma de pagamento"
+                                                            style={[styles.selectPicker, {height: 50, marginHorizontal: 0}]}
+                                                            selectedValue={formaPagamento}
+                                                            onValueChange={(itemValue) => { setFormaPagamento(itemValue); } }
+                                                        >
+                                                            <Picker.Item label="Forma de pagamento" />
+                                                            {dataFormaPagamento.map((item) => {
+                                                                return <Picker.Item label={item} value={item} key={item} />;
+                                                            })}
+                                                        </Picker>
+                                                    </View>
+                                                    <View style={[styles.cardInputs, {flexGrow: 1}]}>
+                                                        <Text>Tipo de conta</Text>
+                                                        <Picker
+                                                            dropdownIconColor="#9E9E9E"
+                                                            placeholder="Tipo de conta"
+                                                            style={[styles.selectPicker, {height: 50, marginHorizontal: 0}]}
+                                                            selectedValue={tipoConta}
+                                                            onValueChange={(itemValue) => { setTipoConta(itemValue); } }
+                                                        >
+                                                            <Picker.Item label="Tipo de conta" />
+                                                            {contasBancarias.map((item) => {
+                                                                return <Picker.Item label={item.nome_banco_cad} value={item.nome_banco_cad} key={item.id_banco_cad} />;
+                                                            })}
+                                                        </Picker>
+                                                    </View>
+                                                </View></> : null}
                                                 {/*footer*/}
                                                 <View style={styles.footer}>
                                                     <View style={styles.subFooter}>

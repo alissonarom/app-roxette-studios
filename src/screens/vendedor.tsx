@@ -33,7 +33,7 @@ export default function Vendedor({route, navigation}:VendedorScreenPorps) {
 
   function handleSignIn() {
     if(vendedor){
-      return navigation.navigate('Cliente', { vendedor: vendedor})
+      return navigation.navigate('Home', { vendedor: vendedor})
     }
   }
 

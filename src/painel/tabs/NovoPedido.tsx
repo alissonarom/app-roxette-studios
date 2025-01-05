@@ -1,7 +1,7 @@
 import { useContext, useEffect, useState } from "react";
 import { View, Text, ScrollView } from "react-native";
 import { Liquidado, NovoPedidoScreenPorps, TBancoCadastro, TCategoFinanceira, TContaReceber, TOrcamento } from "../../types/index";
-import { Button, Card, DataTable, IconButton, TextInput, Snackbar, ActivityIndicator  } from 'react-native-paper';
+import { Button, Card, DataTable, IconButton, TextInput, Snackbar, ActivityIndicator, Switch   } from 'react-native-paper';
 import { styles } from "../styles";
 import { SafeAreaView } from "react-native";
 import DatePicker from '../../components/datePicker'
@@ -32,6 +32,9 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
     const [totalDescontoProdutos, setTotalDescontoProdutos] = useState(0);
     const [totalProdutos, setTotalProdutos] = useState('')
     const [dataProdutos, setDataProdutos] = useState<TProduto[]>([]);
+    const [isSwitchOn, setIsSwitchOn] = useState(false);
+
+    const onToggleSwitch = () => setIsSwitchOn(!isSwitchOn);
 
     // route params
     const route = useRoute<RouteProp<RootStackParamList, 'Pedido'>>();
@@ -68,6 +71,13 @@ const NovoPedido: React.FC<NovoPedidoScreenPorps> = () => {
     useEffect(() => {
         setPagamentoParcelado([]);  // Chama a função de atualização de parcelas
     }, [arrayProdutos]);
+
+    useEffect(() => {
+            if (pedidosContext) {
+              pedidosContext.atualizarPedidos(cliente.id_cliente, vendedor.id_vendedor);
+              pedidosContext.atualizarOrcamentos(cliente.id_cliente, vendedor.id_vendedor);
+            }
+        }, []);
 
     const getContaBancaria = async () => {
         setLoading(true);
@@ -130,8 +140,7 @@ const getProdutos = async () => {
         });
 
         const json = await response.json();
-        console.log('json', json)
-        const produtosFiltrados = json.data.filter((produto: { tipo_produto: string; }) => produto.tipo_produto === "Produto");
+        const produtosFiltrados = json.data.filter((produto: { tipo_produto: string, id_categoria: number }) => produto.tipo_produto === "Produto" && produto.id_categoria === 339468);
         setDataProdutos(produtosFiltrados);
     } catch (error) {
         console.error('Erro:', error);
@@ -139,7 +148,6 @@ const getProdutos = async () => {
         setLoading(false);
     }
 };
-
 
     // Monta pedido
     const novoPedido = () => {
@@ -156,7 +164,7 @@ const getProdutos = async () => {
               referencia_pedido: null, // Referência do pedido
               obs_pedido: observacao, // Observações do pedido
               obs_interno_pedido: type === 'troca' ? 'Pedido de troca':'', // Observação interna do pedido
-              status_pedido: type === 'troca' ? Status_pedido["Atendido"]:Status_pedido["Em Aberto"], // Status do pedido
+              status_pedido: (type === 'troca' || (type === 'pedido' && isSwitchOn)) ? Status_pedido["Atendido"] : Status_pedido["Em Aberto"],
               estoque_pedido: Estoque_pedido.Não, // Estoque lançado (Sim/Não)
               contas_pedido: Conta_lancada.Sim, // Contas lançadas (Sim/Não)
               valor_total_produtos: totalProdutos
@@ -164,21 +172,21 @@ const getProdutos = async () => {
     };
     
     const novoOrcamento = () => {
-            return {
-              id_cliente: cliente.id_cliente, // ID do cliente 
-              nome_cliente: cliente.razao_cliente, // Nome do cliente
-              vendedor_pedido: vendedor.razao_vendedor, // Nome do vendedor
-              vendedor_pedido_id: vendedor.id_vendedor, // ID do vendedor
-              desconto_pedido: String(totalDescontoProdutos), // Valor total do desconto
-              peso_total_nota: '0', // Peso total do pedido
-              peso_total_nota_liq: '0', // Peso líquido do pedido
-              data_pedido: new Date().toISOString().split('T')[0], // Data do pedido
-              prazo_orcamento: new Date(prazo).toISOString().split('T')[0], // Prazo de entrega (Dias)
-              referencia_pedido: null, // Referência do pedido
-              obs_pedido: observacao, // Observações do pedido
-              obs_interno_pedido: '', // Observação interna do pedido
-              status_pedido: Status_pedido["Em Aberto"], // Status do pedido
-            };
+        return {
+          id_cliente: cliente.id_cliente, // ID do cliente 
+          nome_cliente: cliente.razao_cliente, // Nome do cliente
+          vendedor_pedido: vendedor.razao_vendedor, // Nome do vendedor
+          vendedor_pedido_id: vendedor.id_vendedor, // ID do vendedor
+          desconto_pedido: String(totalDescontoProdutos), // Valor total do desconto
+          peso_total_nota: '0', // Peso total do pedido
+          peso_total_nota_liq: '0', // Peso líquido do pedido
+          data_pedido: new Date().toISOString().split('T')[0], // Data do pedido
+          prazo_orcamento: new Date(prazo).toISOString().split('T')[0], // Prazo de entrega (Dias)
+          referencia_pedido: null, // Referência do pedido
+          obs_pedido: observacao, // Observações do pedido
+          obs_interno_pedido: '', // Observação interna do pedido
+          status_pedido: Status_pedido["Em Aberto"], // Status do pedido
+        };
     };
 
 //POST--------------
@@ -481,23 +489,29 @@ const getProdutos = async () => {
                             <Text style={{ fontSize: 10, alignSelf: 'flex-start', color: type ? 'green' : 'red' }}>obrigatório</Text>
                         </View>
                         <View style={[styles.cardPanelContent, {justifyContent: 'space-around', flexDirection: 'column'}]}>
-                            <Button
-                                style={{ marginVertical: 5, borderColor: '#145B91' }}
-                                labelStyle={{ fontSize: 15, fontWeight: "600" }}
-                                buttonColor={type === 'pedido' ? '#145B91' : 'white'}
-                                textColor={type === 'pedido' ? 'white' : '#145B91'}
-                                mode={type === 'pedido' ? "contained" : 'outlined'}
-                                onPress={()=> setType('pedido')}
-                            >       
-                                Criar Pedido
-                            </Button>
+                            <View style={{ display: "flex", flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+                                <Button
+                                    style={{ marginVertical: 5, borderColor: '#145B91', flexGrow: 1 }}
+                                    labelStyle={{ fontSize: 15, fontWeight: "600" }}
+                                    buttonColor={type === 'pedido' ? '#145B91' : 'white'}
+                                    textColor={type === 'pedido' ? 'white' : '#145B91'}
+                                    mode={type === 'pedido' ? "contained" : 'outlined'}
+                                    onPress={()=> setType('pedido')}
+                                >       
+                                    Criar Pedido
+                                </Button>
+                                {type === 'pedido' ?
+                                <><Text style={{maxWidth: 60, textAlign: 'center', marginRight: 10, marginLeft: 10, lineHeight: 15, color: 'rgb(20, 91, 145)'}}>Pedido atendido</Text><Switch color="rgb(20, 91, 145)" value={isSwitchOn} onValueChange={onToggleSwitch} /></>
+                                : null
+                                }
+                            </View>
                             <Button
                                 style={{ marginVertical: 5, borderColor: '#145B91' }}
                                 labelStyle={{ fontSize: 15, fontWeight: "600" }}
                                 buttonColor={type === 'orcamento' ? '#145B91' : 'white'}
                                 textColor={type === 'orcamento' ? 'white' : '#145B91'}
                                 mode={type === 'orcamento' ? "contained" : 'outlined'}
-                                onPress={()=> setType('orcamento')}
+                                onPress={() => { setType('orcamento'); setIsSwitchOn(false); }}
                             >       
                                 Criar Orçamento
                             </Button>
@@ -507,7 +521,7 @@ const getProdutos = async () => {
                                 buttonColor={type === 'troca' ? '#145B91' : 'white'}
                                 textColor={type === 'troca' ? 'white' : '#145B91'}
                                 mode={type === 'troca' ? "contained" : 'outlined'}
-                                onPress={()=> setType('troca')}
+                                onPress={() => { setType('troca'); setIsSwitchOn(false); }}
                             >       
                                 Troca
                             </Button>

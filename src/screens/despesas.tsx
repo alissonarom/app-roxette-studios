@@ -53,12 +53,7 @@ export default function Despesas({navigation}:DespesasScreenPorps) {
         getContaBancaria();
         getCentroCusto();
     }, []);
-    //clear function
-    const clearPainel = () => {
-        setTimeout(() => {
-            navigation.navigate('Home', { vendedor: vendedor });
-        }, 1000);
-    };
+
     //GET conta bancaria
     const getContaBancaria = async () => {
         setLoading(true);
@@ -148,6 +143,7 @@ export default function Despesas({navigation}:DespesasScreenPorps) {
         const despesaResponse = await fetch(`/api/contas-pagar`, {
             method: 'POST',
             body: JSON.stringify(despesa),
+            headers
         });
         if (!despesaResponse.ok) {
             throw new Error('Erro ao cadastrar despesas');
@@ -160,7 +156,9 @@ export default function Despesas({navigation}:DespesasScreenPorps) {
     } catch (error) {
         console.error('Erro ao criar contas a pagar:', error);
     } finally {
-        clearPainel();
+        setTimeout(() => {
+            navigation.navigate('Home', { vendedor: vendedor });
+        }, 1000);
     }
     };
 
@@ -173,7 +171,6 @@ export default function Despesas({navigation}:DespesasScreenPorps) {
             ) : (
                 <ScrollView style={styles.scrollView}>
                     {/* Dados do pagamento */}
-                    <Text style={[styles.h3, {margin:10, fontSize: 18}]}>Dados da despesa</Text>
                     <Card mode="elevated" style={styles.cardPanel}>
                         {/*Nome da despesa, conta bancaria*/}
                         <View style={[styles.cardPanelContent,{marginVertical: 10, justifyContent: 'space-between'}]}>
@@ -252,25 +249,31 @@ export default function Despesas({navigation}:DespesasScreenPorps) {
                         </View>
                         {/*Fornecedor, valor*/}
                         <View style={[styles.cardPanelContent, {marginVertical: 10}]}>
-                            <TextInput
-                                outlineColor='#145B91'
-                                activeOutlineColor='#145B91'
-                                mode="outlined"
-                                label="Forncedor*"
-                                style={{ marginHorizontal: 5, flexGrow:1, backgroundColor: 'white', fontSize: 14, fontFamily: 'Roboto' }}
-                                value={fornecedor}
-                                onChangeText={setFornecedor}
-                            />
-                            <TextInput
-                                outlineColor='#145B91'
-                                activeOutlineColor='#145B91'
-                                mode="outlined"
-                                style={{marginHorizontal: 5, flexShrink:1, backgroundColor: 'white', fontSize: 14, fontFamily: 'Roboto' }}
-                                label="Valor"
-                                value={valorBaixa}
-                                keyboardType="numeric"
-                                onChangeText={handleChangeTextValor}
-                            />
+                            <View style={[styles.cardInputs, {marginHorizontal: 5}]}>
+                                <Text style={{ fontSize: 10, alignSelf: 'flex-start', color: fornecedor ? 'green' : 'red', marginLeft: 5 }}>obrigatório</Text>
+                                <TextInput
+                                    outlineColor='#145B91'
+                                    activeOutlineColor='#145B91'
+                                    mode="outlined"
+                                    label="Forncedor"
+                                    style={{ marginHorizontal: 5, flexGrow:1, backgroundColor: 'white', fontSize: 14, fontFamily: 'Roboto' }}
+                                    value={fornecedor}
+                                    onChangeText={setFornecedor}
+                                />
+                            </View>
+                            <View style={[styles.cardInputs, {marginHorizontal: 5}]}>
+                                <Text style={{ fontSize: 10, alignSelf: 'flex-start', color: valorBaixa ? 'green' : 'red', marginLeft: 5 }}>obrigatório</Text>
+                                <TextInput
+                                    outlineColor='#145B91'
+                                    activeOutlineColor='#145B91'
+                                    mode="outlined"
+                                    style={{marginHorizontal: 5, flexShrink:1, backgroundColor: 'white', fontSize: 14, fontFamily: 'Roboto' }}
+                                    label="Valor"
+                                    value={valorBaixa}
+                                    keyboardType="numeric"
+                                    onChangeText={handleChangeTextValor}
+                                />
+                            </View>
                         </View>
                         {/*checkbox pago*/}
                         <View style={[styles.cardPanelContent, {marginVertical: 10}]}>
@@ -291,16 +294,19 @@ export default function Despesas({navigation}:DespesasScreenPorps) {
                                 <Text>Data de pagamento</Text>
                                 <DatePicker date={dataPagamento} setDate={setDataPagamento} />
                             </View>
-                            <TextInput
-                                outlineColor='#145B91'
+                            <View style={[styles.cardInputs, {marginHorizontal: 5}]}>
+                                <Text style={{ fontSize: 10, alignSelf: 'flex-start', color: valorBaixa ? 'green' : 'red', marginLeft: 5 }}>obrigatório</Text>
+                                <TextInput
+                                    outlineColor='#145B91'
                                     activeOutlineColor='#145B91'
                                     mode="outlined"
                                     label="Valor da baixa"
-                                    style={{ marginHorizontal: 5, flexGrow:1, backgroundColor: 'white', fontSize: 14, fontFamily: 'Roboto', marginTop: 19 }}
+                                    style={{ marginHorizontal: 5, flexGrow:1, backgroundColor: 'white', fontSize: 14, fontFamily: 'Roboto' }}
                                     value={valorBaixa}
                                     onChangeText={handleChangeTextValor}
                                     keyboardType="numeric"
                                 />
+                            </View>
                         </View>
                         <View style={[styles.cardPanelContent, {marginVertical: 10}]}>
                             <TextInput
@@ -381,16 +387,6 @@ export default function Despesas({navigation}:DespesasScreenPorps) {
                         onPress={criaNovaDespesa}
                     >
                         Salvar
-                    </Button>
-                    <Button
-                        style={{ marginHorizontal: 60 }}
-                        labelStyle={{ fontSize: 15, fontWeight: "600" }}
-                        buttonColor='transparent'
-                        textColor="white"
-                        mode="outlined"
-                        onPress={clearPainel}
-                    >
-                        Cancelar
                     </Button>
                 </View>
                 <Snackbar

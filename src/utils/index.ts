@@ -53,10 +53,18 @@ export const formatarValor = (valor: string) => {
 
     return valorFormatado; // Retorna uma string formatada com 2 casas decimais
 };
-
+// cliente
 export const headers = {
     'access-token': 'UOTGAISHUNMBfPNRDZHKSBLLBUPdCc',
     'secret-access-token': 'UXkvL5o4lzbgJWXZPHAfXYMDzX9WTy',
     'cache-control': 'no-cache',
     'content-type': 'application/json',
   };
+
+// efrata
+// export const headers = {
+//     'access-token': 'YGZSXYRIZVgQbCcXZGUZPDNRXWUHTE',
+//     'secret-access-token': 'EZp0ESVrg4rmZ0eWtPcdvNKNRTtSEC',
+//     'cache-control': 'no-cache',
+//     'content-type': 'application/json',
+//   };

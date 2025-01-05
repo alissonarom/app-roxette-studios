@@ -13,6 +13,7 @@ export default function Baixa({navigation}:BaixaScreenPorps) {
     const [visibleOk, setVisibleOk] = useState(false);
     const [visibleError, setVisibleError] = useState(false);
     const [visibleErrorPedido, setVisibleErrorPedido] = useState(false);
+    const [visibleErrorNota, setVisibleErrorNota] = useState(false);
     const [numberNota, setNumberNota] = useState<string>('');
     const [errorMessage, setErrorMessage] = useState<string>('');
 
@@ -29,31 +30,49 @@ export default function Baixa({navigation}:BaixaScreenPorps) {
     //clear function
     const clearPainel = () => {
         setTimeout(() => {
-            navigation.navigate('Home', { cliente: cliente, vendedor: vendedor });
+            navigation.navigate('Home', { vendedor: vendedor });
         }, 2000);
     };
 
     const getNota = async () => {
         setLoading(true);
+        let allNotas: any[] = [];
+        let offset = 0;
+        const limit = 250;
+
         try {
-            const getNotas = await fetch(`/api/notas-fiscais`,{
+            let hasMore = true;
+            
+            while (hasMore) {
+              const response = await fetch(`/api/notas-fiscais?offset=${offset}&limit=${limit}`, {
                 method: 'GET',
                 headers,
-            });
-          
-            const json = await getNotas.json();
+              });
+        
+              const json = await response.json();
+              
+              // Adicionar notas da página atual ao array total
+              allNotas = [...allNotas, ...json.data];
+        
+              // Verificar se há mais notas para buscar
+              const { total, offset: currentOffset, total_count } = json.paging;
+              offset = currentOffset + total_count;
+        
+              // Se o total de Notas obtidos for igual ao total disponível, parar a busca
+              hasMore = allNotas.length < total;
+            }
             
-            const notasFiltradas = json.data.filter((pedido: any) => 
-                pedido.id_pedido == numberNota
+                      
+            const notasFiltradas = allNotas.filter((nota: any) => 
+                nota.id_pedido == numberNota
             );
-
-            if (!getNotas.ok) {
-                setVisibleErrorPedido(!visibleErrorPedido)
-                throw new Error('Erro ao Buscar Notas');
-            };
-
-            setDataNota(notasFiltradas);
-            setChecked(true);
+            
+            if(notasFiltradas.length == 0){
+                setVisibleErrorNota(true)
+            }else{
+                setDataNota(notasFiltradas);
+                setChecked(true);
+            }
 
         } catch (error) {
             console.error('Erro:', error);
@@ -112,20 +131,21 @@ export default function Baixa({navigation}:BaixaScreenPorps) {
                                 onChangeText={handleChangeNumberNota}
                                 mode="outlined"
                                 keyboardType="numeric"
-                                label="Digite o numero da nota" />
-                                <Button
-                                    style={{ marginVertical: 10 }}
-                                    disabled={!numberNota}
-                                    labelStyle={{ fontSize: 15, fontWeight: "600" }}
-                                    buttonColor='#145B91'
-                                    textColor='white'
-                                    mode="contained"
-                                    onPress={() => getNota()}
-                                    loading={isLoading}>
-                                    Buscar Nota
-                                </Button>
+                                label="Digite o numero da nota"
+                            />
+                            <Button
+                                style={{ marginVertical: 10 }}
+                                disabled={!numberNota}
+                                labelStyle={{ fontSize: 15, fontWeight: "600" }}
+                                buttonColor='#145B91'
+                                textColor='white'
+                                mode="contained"
+                                onPress={() => getNota()}
+                                loading={isLoading}>
+                                Buscar
+                            </Button>
                         </View>
-                    </View>
+                        </View>
                     {checked ?
                         (<>
                             <View style={[styles.cardPanelContent, { marginVertical: 10, display: "flex", flexDirection: 'column', flexWrap: "nowrap" }]}>
@@ -185,6 +205,14 @@ export default function Baixa({navigation}:BaixaScreenPorps) {
                 duration={3000}
             >
                 {errorMessage}
+            </Snackbar>
+            <Snackbar
+                style={{ backgroundColor: 'red' }}
+                visible={visibleErrorNota}
+                onDismiss={() => setVisibleErrorNota(false)}
+                duration={3000}
+            >
+                Nenhuma nota encontrada
             </Snackbar>
             <Snackbar
                 style={{ backgroundColor: 'red' }}

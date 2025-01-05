@@ -7,10 +7,10 @@ export type RootStackParamList = {
     Pedido: { cliente: TClienteResponse, vendedor: TVendedorResponse };
     Financeiro: { cliente: TClienteResponse, vendedor: TVendedorResponse };
     Painel: { cliente: TClienteResponse, vendedor: TVendedorResponse };
-    Home: { cliente: TClienteResponse, vendedor: TVendedorResponse };
+    Home: { vendedor: TVendedorResponse };
     Vendedor: any
     Despesas: { vendedor: TVendedorResponse };
-    Baixa: { cliente: TClienteResponse, vendedor: TVendedorResponse };
+    Baixa: { vendedor: TVendedorResponse };
 
 };
 

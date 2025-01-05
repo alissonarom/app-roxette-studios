@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import { View, Text, Image, StyleSheet, Dimensions, ActivityIndicator } from "react-native";
+import { View, TouchableOpacity, FlatList, Image, StyleSheet, Dimensions, ActivityIndicator, TextInput, Text } from "react-native";
 import { ClienteScreenProps, RootStackParamList } from '../types';
 import {Picker} from '@react-native-picker/picker';
 import { Button } from 'react-native-paper';
@@ -14,24 +14,42 @@ export default function Cliente({navigation}:ClienteScreenProps) {
   const [isLoading, setLoading] = useState(true);
   const [data, setData] = useState<TClienteResponse[]>([]);
   const route = useRoute<RouteProp<RootStackParamList, 'Cliente'>>();
+  const [searchText, setSearchText] = useState('');
+  const [filteredData, setFilteredData] = useState<TClienteResponse[]>([]);
+  const [isDropdownVisible, setDropdownVisible] = useState(false);
   const { vendedor } = route.params || {};
 
-  function handleDespesasScreen() {
-    if(vendedor){
-      return navigation.navigate('Despesas', {vendedor: vendedor})
-    }
-  } 
-
-  function changeCliente() {
+  function changeVendedor() {
       return navigation.navigate('Vendedor')
-  } 
+  }
+
+  const handleSearch = (text: string) => {
+      setSearchText(text);
+      // Filtra os dados conforme o texto digitado
+      if (text === '') {
+        setFilteredData([]); // Se o campo de busca estiver vazio, não exibe resultados
+      } else {
+        setDropdownVisible(true);
+      const filtered = data.filter(item =>
+        item.razao_cliente.toLowerCase().includes(text.toLowerCase())
+      );
+      setFilteredData(filtered);
+    }
+  };
+
+  const handleSelectClient = (cliente: TClienteResponse) => {
+      setClient(cliente); // Seleciona o cliente
+      setSearchText(cliente.razao_cliente); // Atualiza o campo de pesquisa com o nome do cliente
+      setFilteredData([]); // Restaura os dados filtrados para mostrar todos novamente
+      setDropdownVisible(false);
+  };
 
   const getClientes = async () => {
     setLoading(true);
     
     let allClientes: TClienteResponse[] = [];
     let offset = 0;
-    const limit = 50; // Definindo um limite de 50 clientes por página (ajustável conforme necessidade)
+    const limit = 250; // Definindo um limite de 50 clientes por página (ajustável conforme necessidade)
   
     try {
       let hasMore = true;
@@ -73,8 +91,8 @@ export default function Cliente({navigation}:ClienteScreenProps) {
   };
   
   function handleSignIn() {
-    if(client){
-      return navigation.navigate('Home', { cliente: client, vendedor: vendedor})
+    if (client) {
+      return navigation.navigate('Painel', { vendedor: vendedor, cliente: client });
     }
   }
 
@@ -82,75 +100,117 @@ export default function Cliente({navigation}:ClienteScreenProps) {
     getClientes();
   }, []);
       
-    return (
-      <View style={styles.container}>
+  return (
+    <View style={styles.container}>
       {isLoading ? (
         <ActivityIndicator />
       ) : (
         <>
-        <Image
-          resizeMode='contain'
-          style={styles.tinyLogo}
-          source={require('../../assets/logo-no-background.png')}
-        />
-        <Text style={styles.text}>Olá {vendedor ? vendedor.razao_vendedor.split(' ')[0] : ''}!</Text>
-        <Text style={styles.text}>Selecione um cliente</Text>
-        <Picker
-          style={styles.selectPicker}
-          selectedValue={client?.razao_cliente}
-          onValueChange={(itemValue, itemIndex) => {
-            const selectedItem = data[itemIndex - 1];
-            setClient(selectedItem || null);
-        }}>
-            <Picker.Item label='Clientes' value='Clientes' style={{fontSize:12}} />
-          {data.map((item) => {
-            return <Picker.Item label={item.razao_cliente} value={item.razao_cliente} key={item.id_cliente} />
-          })}
-        </Picker>
-        <Button style={styles.button} buttonColor="#1F88D9" mode="contained" onPress={handleSignIn}>Avançar</Button>
-        <Button style={styles.button} textColor="white" mode="text" onPress={changeCliente}>Trocar de vendedor</Button>
-        </>)}
-      </View>
-    );
-  };
-
-export const styles = StyleSheet.create({
+          <Image
+            resizeMode="contain"
+            style={styles.tinyLogo}
+            source={require("../../assets/logo-no-background.png")}
+          />
+          <Text style={styles.text}>
+            Olá {vendedor ? vendedor.razao_vendedor.split(" ")[0] : ""}!
+          </Text>
+          <Text style={styles.text}>Selecione um cliente</Text>
+  
+          <View style={{zIndex: 10000}}>
+            {/* Barra de Pesquisa */}
+            <TextInput
+              style={styles.input}
+              placeholder="Digite o nome do cliente"
+              value={searchText}
+              onChangeText={handleSearch}
+              onFocus={() => setDropdownVisible(true)}
+            />
+  
+            {/* Dropdown Contêiner */}
+            {isDropdownVisible && (
+              <View style={styles.dropdownContainer}>
+                <FlatList
+                  data={filteredData}
+                  keyExtractor={(item) => item.id_cliente.toString()}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity onPress={() => handleSelectClient(item)}>
+                      <Text style={styles.dropdownItem}>
+                        {item.razao_cliente}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                />
+              </View>
+            )}
+          </View>
+  
+          <Button
+            style={styles.button}
+            buttonColor="#1F88D9"
+            mode="contained"
+            onPress={handleSignIn}
+          >
+            Avançar
+          </Button>
+          <Button
+            style={styles.button}
+            textColor="white"
+            mode="text"
+            onPress={changeVendedor}
+          >
+            Trocar de vendedor
+          </Button>
+        </>
+      )}
+    </View>
+  );
+}
+  
+  const styles = StyleSheet.create({
     container: {
       flex: 1,
       justifyContent: "flex-start",
       padding: 32,
-      backgroundColor: "#145B91"
+      backgroundColor: "#145B91",
     },
     input: {
       height: 54,
       width: "100%",
-      backgroundColor: "#E3E3E3E3",
+      backgroundColor: 'white',
       borderRadius: 5,
       padding: 16,
+    },
+    dropdownContainer: {
+      position: "absolute",
+      top: 55, // Ajuste conforme necessário para alinhar com o input
+      left: 0,
+      right: 0,
+      maxHeight: '470%',
+      backgroundColor: "#fff",
+      borderWidth: 1,
+      borderColor: "#ccc",
+      zIndex: 1000,
+    },
+    dropdownItem: {
+      padding: 10,
+      fontSize: 14,
     },
     button: {
       height: 50,
       borderRadius: 5,
       justifyContent: "center",
       marginHorizontal: 20,
-      marginVertical:10
+      marginVertical: 10,
     },
     text: {
       fontSize: 20,
       color: "white",
       marginVertical: 15,
-      textAlign: 'center'
-    },
-    selectPicker: {
-      backgroundColor: 'white',
-      padding: 15,
-      marginVertical: 8,
-      marginHorizontal: 16,
+      textAlign: "center",
     },
     tinyLogo: {
-      width: width * 0.5,
+      width: "50%",
       height: 200,
-      alignSelf: 'center'
+      alignSelf: "center",
     },
   })
-  

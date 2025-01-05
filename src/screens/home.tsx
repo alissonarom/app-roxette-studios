@@ -1,18 +1,12 @@
 import React from 'react';
 import { View, StyleSheet,Text } from "react-native";
 import { HomeScreenProps, RootStackParamList } from '../types';
-import { Avatar, Card, Button } from 'react-native-paper';
+import { Avatar, Card } from 'react-native-paper';
 import { useRoute, RouteProp } from '@react-navigation/native';
 
 export default function Home({navigation}:HomeScreenProps) {
   const route = useRoute<RouteProp<RootStackParamList, 'Home'>>();
-  const { vendedor, cliente } = route.params || {};
-
-  function handleClienteScreen() {
-    if(vendedor){
-      return navigation.navigate('Painel', {cliente: cliente, vendedor: vendedor})
-    }
-  }
+  const { vendedor } = route.params || {};
 
   function handleDespesasScreen() {
     if(vendedor){
@@ -20,21 +14,19 @@ export default function Home({navigation}:HomeScreenProps) {
     }
   }
 
-  function handleBaixaScreen() {
-    if(vendedor){
-      return navigation.navigate('Baixa', {cliente: cliente, vendedor: vendedor})
-    }
-  }
-
-  function changeCliente() {
+  function goCliente() {
     return navigation.navigate('Cliente', {vendedor: vendedor})
-} 
+  } 
+
+  function goBaixa() {
+    return navigation.navigate('Baixa', {vendedor: vendedor})
+  } 
   
     return (
       <View style={styles.container}>
         <Text style={styles.text}>Olá {vendedor ? vendedor.razao_vendedor.split(' ')[0] : ''}!</Text>
         <View style={styles.container}>
-          <Card onPress={() => {handleClienteScreen()}} mode='contained' style={{backgroundColor: 'white', marginVertical: 10}}>
+          <Card onPress={() => {goCliente()}} mode='contained' style={{backgroundColor: 'white', marginVertical: 10}}>
             <Card.Title
               title="Iniciar venda"
               titleVariant={'titleMedium'}
@@ -52,7 +44,7 @@ export default function Home({navigation}:HomeScreenProps) {
               left={(props) => <Avatar.Icon {...props} icon="account-arrow-down" style={{backgroundColor: '#145B91'}} color='white'/>}
             />
           </Card>
-          <Card onPress={() => {handleBaixaScreen()}} mode='contained' style={{backgroundColor: 'white', marginVertical: 10}}>
+          <Card onPress={() => {goBaixa()}} mode='contained' style={{backgroundColor: 'white', marginVertical: 10}}>
             <Card.Title
               title="Confirmar entrega"
               titleVariant={'titleMedium'}
@@ -61,7 +53,6 @@ export default function Home({navigation}:HomeScreenProps) {
               left={(props) => <Avatar.Icon {...props} icon="file-document-edit" style={{backgroundColor: '#145B91'}} color='white'/>}
             />
           </Card>
-          <Button style={styles.button} textColor="white" mode="text" onPress={changeCliente}>Trocar de cliente</Button>
         </View>
       </View>
     );
