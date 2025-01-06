@@ -1,13 +1,13 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Cliente from './src/screens/cliente';
-import Vendedor from './src/screens/vendedor';
 import Home from './src/screens/home';
 import Despesas from './src/screens/despesas';
 import Baixa from './src/screens/baixa';
 import Tabs from './src/painel';
 import { RootStackParamList } from './src/types';
 import { PedidosProvider } from './src/utils/PedidoContext';
+import welcome from './src/screens/welcome';
 
 export default function App() {
   const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -15,13 +15,13 @@ export default function App() {
   return (
     <PedidosProvider>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Vendedor">
+        <Stack.Navigator initialRouteName="Welcome">
           <Stack.Screen
-            name="Vendedor"
-            component={Vendedor}
+            name="Welcome"
+            component={welcome}
             options={{ headerShown: false }}
           />
-          <Stack.Screen
+          {/* <Stack.Screen
             name="Home"
             component={Home}
             options={{ headerShown: false }}
@@ -45,7 +45,7 @@ export default function App() {
             name="Painel"
             component={Tabs}
             options={{ title: 'Painel do Pedido' }}
-          />
+          /> */}
         </Stack.Navigator>
       </NavigationContainer>
     </PedidosProvider>
