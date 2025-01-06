@@ -15,7 +15,7 @@ export default function App() {
   return (
     <PedidosProvider>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Servicos">
+        <Stack.Navigator initialRouteName="Welcome">
           <Stack.Screen
             name="Welcome"
             component={Welcome}

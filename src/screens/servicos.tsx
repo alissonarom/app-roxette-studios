@@ -6,7 +6,8 @@ import { Text } from 'react-native-paper';
 import { styles } from "../styles/styles";
 
 export default function Servicos({ navigation}:any) {
-  const route = useRoute<RouteProp<RootStackParamList, 'Home'>>();
+  const route = useRoute<RouteProp<RootStackParamList, 'Servicos'>>();
+  const { cliente } = route.params;
   const [nome, onChangeNome] = useState('');
   const [niver, onChangeNiver] = useState('');
   const [cidade, onChangecidade] = useState('');
@@ -27,7 +28,7 @@ export default function Servicos({ navigation}:any) {
         style={styles.backgroundImage}
       >
       <View style={styles.container}>
-        <Text style={[styles.texth1, {marginBottom: 100, color: '#ffe7db'}]}>Perfeito {nome}!</Text>
+        <Text style={[styles.texth1, {marginBottom: 100, color: '#ffe7db'}]}>Perfeito, {cliente.nome.split(' ')[0]}!</Text>
         <Text style={[styles.texth1, {marginBottom: 100, color: '#ffe7db'}]}>Agora escolha quais serviços você pretende fazer nesta sessão</Text>
         <View style={styles.switchContainer}>
             <Switch

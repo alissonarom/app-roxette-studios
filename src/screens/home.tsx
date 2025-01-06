@@ -14,7 +14,8 @@ export default function Home({ navigation}:any) {
   const [instagram, onChangeInstagram] = useState('');
 
   function handleSignIn() {
-    return navigation.navigate('Servicos')
+    const cliente = { nome: nome, niver: niver, cidade: cidade, cel: cel, instagram: instagram, };
+    return navigation.navigate('Servicos', { cliente: cliente });
   }
   
     return (

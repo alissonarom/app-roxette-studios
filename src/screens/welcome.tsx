@@ -1,8 +1,6 @@
 import React, {useState} from 'react';
 import { View, Text, Image, StyleSheet, Dimensions, ImageBackground } from "react-native";
-import { VendedorScreenPorps } from '../types';
 import { Button } from 'react-native-paper';
-import { TVendedorResponse } from '../types';
 
 var {width} = Dimensions.get('window');
 
