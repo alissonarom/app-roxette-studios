@@ -6,10 +6,7 @@ import { TVendedorResponse } from '../types';
 
 var {width} = Dimensions.get('window');
 
-export default function welcome({route, navigation}:VendedorScreenPorps) {
-  const [vendedor, setVendedor] = useState<TVendedorResponse>();
-  const [isLoading, setLoading] = useState(true);
-  const [data, setData] = useState<TVendedorResponse[]>([]);
+export default function Welcome({ navigation}:any) {
 
   function handleSignIn() {
     return navigation.navigate('Home')
@@ -66,13 +63,13 @@ export const styles = StyleSheet.create({
       textAlign: 'center',
     },
     texth2: {
-      fontSize: 25,
+      fontSize: 30,
       color: "white",
       marginVertical: 15,
       textAlign: 'center',
     },
     texth1: {
-      fontSize: 30,
+      fontSize: 40,
       color: "white",
       marginVertical: 15,
       textAlign: 'center',

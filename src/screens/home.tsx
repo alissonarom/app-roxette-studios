@@ -1,82 +1,87 @@
-import React from 'react';
-import { View, StyleSheet,Text } from "react-native";
-import { HomeScreenProps, RootStackParamList } from '../types';
-import { Avatar, Card } from 'react-native-paper';
+import React, {useState} from 'react';
+import { View, TextInput, ImageBackground, TouchableOpacity } from "react-native";
+import { RootStackParamList } from '../types';
 import { useRoute, RouteProp } from '@react-navigation/native';
+import { Text } from 'react-native-paper';
+import { styles } from "../styles/styles";
 
-export default function Home({navigation}:HomeScreenProps) {
+export default function Home({ navigation}:any) {
   const route = useRoute<RouteProp<RootStackParamList, 'Home'>>();
-  const { vendedor } = route.params || {};
+  const [nome, onChangeNome] = useState('');
+  const [niver, onChangeNiver] = useState('');
+  const [cidade, onChangecidade] = useState('');
+  const [cel, onChangeCel] = useState('');
+  const [instagram, onChangeInstagram] = useState('');
 
-  function handleDespesasScreen() {
-    if(vendedor){
-      return navigation.navigate('Despesas', {vendedor: vendedor})
-    }
+  function handleSignIn() {
+    return navigation.navigate('Servicos')
   }
-
-  function goCliente() {
-    return navigation.navigate('Cliente', {vendedor: vendedor})
-  } 
-
-  function goBaixa() {
-    return navigation.navigate('Baixa', {vendedor: vendedor})
-  } 
   
     return (
+      <ImageBackground
+        source={require('../../assets/image-background-home.png')} // Substitua pelo caminho da sua imagem
+        style={styles.backgroundImage}
+      >
       <View style={styles.container}>
-        <Text style={styles.text}>Olá {vendedor ? vendedor.razao_vendedor.split(' ')[0] : ''}!</Text>
-        <View style={styles.container}>
-          <Card onPress={() => {goCliente()}} mode='contained' style={{backgroundColor: 'white', marginVertical: 10}}>
-            <Card.Title
-              title="Iniciar venda"
-              titleVariant={'titleMedium'}
-              leftStyle={{backgroundColor:'white'}}
-              titleStyle={{color:'#145B91'}}
-              left={(props) => <Avatar.Icon {...props} icon="account-check" style={{backgroundColor: '#145B91'}} color='white'/>}
+        {/* <View>
+          <Image
+            resizeMode='contain'
+            style={styles.tinyLogo}
+            source={require('../../assets/Roxy-avatar-oi.png')}
+          />
+          </View> */}
+        <Text style={[styles.texth1, {marginBottom: 100, color: '#ffe7db'}]}>Para te conhecermos melhor vamos começar pelo básico!</Text>
+        <Text style={styles.texth2Form}>Nome *</Text>
+        <TextInput
+          style={[styles.input, { backgroundColor: '#00000069', color: 'rgb(109 109 109)', borderBottomColor: 'white', borderBottomWidth: 1, fontSize: 16}]}
+          onChangeText={onChangeNome}
+          value={nome}
+          placeholder="Seu nome completo"
+        />
+        <View style={[{display:'flex', flexDirection:'row', justifyContent:'space-between', marginTop: 20}]}>
+          <View style={{flexGrow:1}}>
+            <Text style={styles.texth2Form}>Aniversário</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: '#00000069', color: 'rgb(109 109 109)', borderBottomColor: 'white', borderBottomWidth: 1, fontSize: 16}]}
+              onChangeText={onChangeNiver}
+              value={niver}
+              placeholder="Data do seu aniversário"
+              keyboardType='numeric'
             />
-          </Card>
-          <Card onPress={() => {handleDespesasScreen()}} mode='contained' style={{backgroundColor: 'white', marginVertical: 10}}>
-            <Card.Title
-              title="Lançar despesas"
-              titleVariant={'titleMedium'}
-              leftStyle={{backgroundColor:'white'}}
-              titleStyle={{color:'#145B91'}}
-              left={(props) => <Avatar.Icon {...props} icon="account-arrow-down" style={{backgroundColor: '#145B91'}} color='white'/>}
+          </View>
+          <View style={{flexGrow:3, marginLeft: 20}}>
+            <Text style={styles.texth2Form}>Cidade</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: '#00000069', color: 'rgb(109 109 109)', borderBottomColor: 'white', borderBottomWidth: 1, fontSize: 16}]}
+              onChangeText={onChangecidade}
+              value={cidade}
+              placeholder="A cidade onde vc mora"
             />
-          </Card>
-          <Card onPress={() => {goBaixa()}} mode='contained' style={{backgroundColor: 'white', marginVertical: 10}}>
-            <Card.Title
-              title="Confirmar entrega"
-              titleVariant={'titleMedium'}
-              leftStyle={{backgroundColor:'white'}}
-              titleStyle={{color:'#145B91'}}
-              left={(props) => <Avatar.Icon {...props} icon="file-document-edit" style={{backgroundColor: '#145B91'}} color='white'/>}
-            />
-          </Card>
+          </View>
         </View>
+        <View style={[{display:'flex', flexDirection:'row', justifyContent:'space-between', marginTop: 20}]}>
+          <View style={{flexGrow:1}}>
+            <Text style={styles.texth2Form}>Whatsapp *</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: '#00000069', color: 'rgb(109 109 109)', borderBottomColor: 'white', borderBottomWidth: 1, fontSize: 16}]}
+              onChangeText={onChangeCel}
+              value={cel}
+              placeholder="(43) 9 0000-0000"
+              keyboardType='numeric'
+            />
+          </View>
+          <View style={{flexGrow:3, marginLeft: 20}}>
+            <Text style={styles.texth2Form}>Instagram</Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: '#00000069', color: 'rgb(109 109 109)', borderBottomColor: 'white', borderBottomWidth: 1, fontSize: 16}]}
+              onChangeText={onChangeInstagram}
+              value={instagram}
+              placeholder="seu.instagram"
+            />
+          </View>
+        </View>
+        <TouchableOpacity disabled={!(cel && nome)} style={[styles.button, {marginTop: 'auto'}]} onPress={handleSignIn}>Avançar</TouchableOpacity>
       </View>
+      </ImageBackground>
     );
   };
-
-export const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      justifyContent: "center",
-      padding: 32,
-      backgroundColor: "#145B91"
-    },
-    button: {
-      height: 50,
-      borderRadius: 5,
-      justifyContent: "center",
-      marginHorizontal: 20,
-      marginVertical:10
-    },
-    text: {
-      fontSize: 20,
-      color: "white",
-      marginVertical: 15,
-      textAlign: 'center'
-    },
-  })
-  

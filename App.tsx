@@ -3,11 +3,11 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Cliente from './src/screens/cliente';
 import Home from './src/screens/home';
 import Despesas from './src/screens/despesas';
-import Baixa from './src/screens/baixa';
+import Servicos from './src/screens/servicos';
 import Tabs from './src/painel';
 import { RootStackParamList } from './src/types';
 import { PedidosProvider } from './src/utils/PedidoContext';
-import welcome from './src/screens/welcome';
+import Welcome from './src/screens/welcome';
 
 export default function App() {
   const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -15,23 +15,23 @@ export default function App() {
   return (
     <PedidosProvider>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="Welcome">
+        <Stack.Navigator initialRouteName="Servicos">
           <Stack.Screen
             name="Welcome"
-            component={welcome}
+            component={Welcome}
             options={{ headerShown: false }}
           />
-          {/* <Stack.Screen
+          <Stack.Screen
             name="Home"
             component={Home}
             options={{ headerShown: false }}
           />
-          <Stack.Screen
-            name="Baixa"
-            component={Baixa}
-            options={{ title: 'Confirmar Entrega' }}
+           <Stack.Screen
+            name="Servicos"
+            component={Servicos}
+            options={{ headerShown: false }}
           />
-          <Stack.Screen
+          {/*<Stack.Screen
             name="Despesas"
             component={Despesas}
             options={{ title: 'Lançar Despesa' }}
