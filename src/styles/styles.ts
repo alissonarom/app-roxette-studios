@@ -69,9 +69,40 @@ export const styles = StyleSheet.create({
             display:'flex',
             flexDirection:'row',
             alignItems:'center',
-            marginTop: 20,
-            width: '60%',
+            width: '80%',
             alignSelf: 'center'
-        }
+        },
+        servicoTitle: {
+          fontSize: 22,
+          fontWeight: 'bold',
+          marginVertical: 10,
+          color: 'aquamarine'
+        },
+        perguntaContainer: {
+          marginTop: 10,
+          marginBottom: 30
+        },
+        pergunta: {
+          fontSize: 16,
+          color: 'white'
+        },
+        subPerguntaContainer: {
+          marginLeft: 20
+        },
+        subPergunta: {
+          fontSize: 14
+        },
+        opcaoContainer: {
+          flexDirection: 'row',
+          alignItems: 'center'
+        },
+        textInput: {
+          borderBottomWidth: 1,
+          borderBottomColor: 'white',
+          padding: 5,
+          marginVertical: 5,
+          width: '90%',
+          color: 'white'
+        },
 
   })

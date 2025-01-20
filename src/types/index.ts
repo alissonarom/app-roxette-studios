@@ -4,6 +4,7 @@ export type RootStackParamList = {
     // Login: any;
     Home: any;
     Servicos: { cliente: any};
+    Anamnese: { cliente: any, selectedServices: any};
 
 };
 
@@ -15,6 +16,11 @@ export type HomeScreenProps = NativeStackScreenProps<
 export type ServicosScreenProps = NativeStackScreenProps<
  RootStackParamList,
  'Servicos'
+>;
+
+export type AnamneseScreenProps = NativeStackScreenProps<
+ RootStackParamList,
+ 'Anamnese'
 >;
 
   

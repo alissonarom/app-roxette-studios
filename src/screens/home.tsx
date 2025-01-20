@@ -1,12 +1,9 @@
 import React, {useState} from 'react';
 import { View, TextInput, ImageBackground, TouchableOpacity } from "react-native";
-import { RootStackParamList } from '../types';
-import { useRoute, RouteProp } from '@react-navigation/native';
 import { Text } from 'react-native-paper';
 import { styles } from "../styles/styles";
 
 export default function Home({ navigation}:any) {
-  const route = useRoute<RouteProp<RootStackParamList, 'Home'>>();
   const [nome, onChangeNome] = useState('');
   const [niver, onChangeNiver] = useState('');
   const [cidade, onChangecidade] = useState('');
@@ -62,7 +59,7 @@ export default function Home({ navigation}:any) {
         </View>
         <View style={[{display:'flex', flexDirection:'row', justifyContent:'space-between', marginTop: 20}]}>
           <View style={{flexGrow:1}}>
-            <Text style={styles.texth2Form}>Whatsapp *</Text>
+            <Text style={styles.texth2Form}>Telefone / Whatsapp *</Text>
             <TextInput
               style={[styles.input, { backgroundColor: '#00000069', color: 'rgb(109 109 109)', borderBottomColor: 'white', borderBottomWidth: 1, fontSize: 16}]}
               onChangeText={onChangeCel}
@@ -81,7 +78,7 @@ export default function Home({ navigation}:any) {
             />
           </View>
         </View>
-        <TouchableOpacity disabled={!(cel && nome)} style={[styles.button, {marginTop: 'auto'}]} onPress={handleSignIn}>Avançar</TouchableOpacity>
+        <TouchableOpacity disabled={!(cel && nome)} style={[styles.button, {marginTop: 'auto', backgroundColor: !(cel && nome) ? 'grey' : 'rgb(156 74 76)', opacity: !(cel && nome) ? 0.2 : 1}]} onPress={handleSignIn}><Text style={styles.texth2}>Avançar</Text></TouchableOpacity>
       </View>
       </ImageBackground>
     );

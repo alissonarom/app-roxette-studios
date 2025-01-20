@@ -1,24 +1,26 @@
 {
   "expo": {
-    "name": "roxette-studios-app-efrata",
-    "slug": "roxette-studios-app-efrata",
+    "name": "roxette-studios-app",
+    "slug": "roxette-studios-app",
     "version": "1.2.0",
     "orientation": "portrait",
     "icon": "./assets/favicon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
+      "image": "",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "newArchEnabled": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/Logomarca-Efrata.png",
+        "foregroundImage": "./assets/favicon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "newArchEnabled": true
     },
     "web": {
       "favicon": "./assets/favicon.png",
